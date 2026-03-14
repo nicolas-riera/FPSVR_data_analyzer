@@ -19,6 +19,7 @@ game_time = {}
 game_fps = {}
 cpu_temps_dict = {}
 gpu_temps_dict = {}
+steamvr_usage = {}
 
 print("\033[?25l", end="", flush=True)
 
@@ -102,11 +103,23 @@ for root, dirs, files in os.walk(HISTORY_DIR):
                         for key in ["CPU_Tavg", "CPU_Tmax"]:
                             if key in data and data[key] <= 120:
                                 cpu_temps_dict.setdefault(cpu_name, []).append(data[key])
+
                     if "gpuSpeedVendor" in data:
                         gpu_name = data["gpuSpeedVendor"].strip()
                         for key in ["GPU_Tavg", "GPU_Tmax"]:
                             if key in data and data[key] <= 120:
                                 gpu_temps_dict.setdefault(gpu_name, []).append(data[key])
+
+                    if "SteamVR" in data:
+                        version = data["SteamVR"]
+                        hmd = data["hmd"]
+                        duration = (end - start).total_seconds()
+                        if version not in steamvr_usage:
+                            steamvr_usage[version] = {}
+                        if hmd in steamvr_usage[version]:
+                            steamvr_usage[version][hmd] += duration
+                        else:
+                            steamvr_usage[version][hmd] = duration
 
             progress_file_count += 1
 
@@ -132,6 +145,7 @@ while 1:
     "1. VR headsets with time usage\n"
     "2. Game playtime and average FPS\n"
     "3. CPU/GPU temperatures by hardware\n"
+    "4. SteamVR Version usage"
     "0. Exit\n"
     )
 
@@ -170,6 +184,19 @@ while 1:
 
             print("CPU/GPU Temperatures by hardware:")
             display_table(headers, data_temps)
+            input("\nPress Enter to go back")
+
+        case "4":
+            headers = ["SteamVR Version", "Most Used HMD", "Usage Time"]
+            data_versions = []
+
+            for version, hmds in steamvr_usage.items():
+                most_used_hmd = max(hmds, key=hmds.get)
+                usage_time = format_duration(hmds[most_used_hmd])
+                data_versions.append([version, most_used_hmd, usage_time])
+
+            print("Most used VR headset per SteamVR version:")
+            display_table(headers, data_versions)
             input("\nPress Enter to go back")
         
         case "0":
