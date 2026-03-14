@@ -1,9 +1,28 @@
+# Librairies
+
 import os
 import json
 from datetime import datetime
 import ctypes
 from ctypes import wintypes
 from time import sleep
+
+# Variables
+
+art = r"""
+  _____ ____  ______     ______     ____        _              
+ |  ___|  _ \/ ___\ \   / /  _ \   |  _ \  __ _| |_ __ _       
+ | |_  | |_) \___ \ \ \ / /| |_) |  | | | |/ _` | __/ _` |      
+ |  _| |  __/ ___) | \ V / |  _ <   | |_| | (_| | || (_| |      
+ |_|   |_|   |____/   \_/  |_| \_\  |____/ \__,_|\__\__,_|      
+                                                                
+     _                _                      
+    / \   _ __   __ _| |_   _ _______ _ __   
+   / _ \ | '_ \ / _` | | | | |_  / _ \ '__|  
+  / ___ \| | | | (_| | | |_| |/ /  __/ |     
+ /_/   \_\_| |_|\__,_|_|\__, /___\___|_|     
+                        |___/                
+"""
 
 CSIDL_PERSONAL = 5  
 SHGFP_TYPE_CURRENT = 0
@@ -19,15 +38,13 @@ game_time = {}
 game_fps = {}
 cpu_temps_dict = {}
 gpu_temps_dict = {}
+hardware_usage = {}
 steamvr_usage = {}
 tracking_usage = {}
 os_usage = {}
+hz_usage = {}
 
-print("\033[?25l", end="", flush=True)
-
-os.system("cls")
-
-print("Retriving and processing data...")
+# Functions
 
 def processhmd(hmd, start, end):
     duration = (end - start).total_seconds()
@@ -69,6 +86,16 @@ def display_table(headers, data):
 
     bottom_separator()
 
+
+# Main program
+
+print("\033[?25l", end="", flush=True)
+os.system("cls")
+print(art)
+sleep(1.5)
+
+print("\nRetriving and processing data...")
+
 total_files = len([os.path.join(r, f) for r, _, files in os.walk(HISTORY_DIR) for f in files if f.endswith(".json")])
 
 progress_file_count = 0
@@ -102,15 +129,21 @@ for root, dirs, files in os.walk(HISTORY_DIR):
 
                     if "cpu" in data:
                         cpu_name = data["cpu"].strip()
+                        if cpu_name not in hardware_usage:
+                            hardware_usage[cpu_name] = {"type": "CPU", "time": 0, "temps": []}
+                        hardware_usage[cpu_name]["time"] += duration
                         for key in ["CPU_Tavg", "CPU_Tmax"]:
                             if key in data and data[key] <= 120:
-                                cpu_temps_dict.setdefault(cpu_name, []).append(data[key])
+                                hardware_usage[cpu_name]["temps"].append(data[key])
 
                     if "gpuSpeedVendor" in data:
                         gpu_name = data["gpuSpeedVendor"].strip()
+                        if gpu_name not in hardware_usage:
+                            hardware_usage[gpu_name] = {"type": "GPU", "time": 0, "temps": []}
+                        hardware_usage[gpu_name]["time"] += duration
                         for key in ["GPU_Tavg", "GPU_Tmax"]:
                             if key in data and data[key] <= 120:
-                                gpu_temps_dict.setdefault(gpu_name, []).append(data[key])
+                                hardware_usage[gpu_name]["temps"].append(data[key])
 
                     if "SteamVR" in data:
                         version = data["SteamVR"]
@@ -131,6 +164,10 @@ for root, dirs, files in os.walk(HISTORY_DIR):
                         os_name = data["OS"]
                         os_usage[os_name] = os_usage.get(os_name, 0) + duration
 
+                    if "hz" in data:
+                        hz_val = data["hz"]
+                        hz_usage[hz_val] = hz_usage.get(hz_val, 0) + duration
+
             progress_file_count += 1
 
             bar_length = 40
@@ -138,6 +175,8 @@ for root, dirs, files in os.walk(HISTORY_DIR):
             filled_length = int(bar_length * progress)
             bar = "#" * filled_length + "-" * (bar_length - filled_length)
             print(f"\r|{bar}| {progress_file_count}/{total_files}", end="")
+
+# Menu loop
 
 while 1:
 
@@ -152,12 +191,13 @@ while 1:
     
     usr_choice = input(
     "Which data do you want to see:\n"
-    "1. VR headsets with time usage\n"
-    "2. Game playtime and average FPS\n"
-    "3. CPU/GPU temperatures by hardware\n"
-    "4. SteamVR Version usage\n"
+    "1. Usage per VR Headset\n"
+    "2. Game Playtime and Average FPS\n"
+    "3. CPU/GPU Usage and Temperatures\n"
+    "4. Usage by SteamVR Version\n"
     "5. Usage by Tracking System\n"
     "6. Usage by OS\n"
+    "7. Usage by Refresh Rate\n"
     "0. Exit\n"
     )
 
@@ -167,13 +207,13 @@ while 1:
 
     match usr_choice:
         case "1":
-
             headers = ["VR Headset", "Total Usage"]
             data = [[h, format_duration(t)] for h, t in hmd_usage.items()]
 
             print("VR headsets with time usage:")
             display_table(headers, data)
             input("\nPress Enter to go back")
+
         case "2":
             headers = ["Game", "Playtime", "Average FPS"]
             data = []
@@ -187,14 +227,15 @@ while 1:
             input("\nPress Enter to go back")
 
         case "3":
-            headers = ["Hardware", "Type", "Average Temp (°C)", "Max Temp (°C)"]
+            headers = ["Hardware", "Type", "Usage Time", "Average Temp (°C)", "Max Temp (°C)"]
             data_temps = []
-            for name, temps in cpu_temps_dict.items():
-                data_temps.append([name, "CPU", f"{sum(temps)/len(temps):.2f}", f"{max(temps):.2f}"])
-            for name, temps in gpu_temps_dict.items():
-                data_temps.append([name, "GPU", f"{sum(temps)/len(temps):.2f}", f"{max(temps):.2f}"])
-
-            print("CPU/GPU Temperatures by hardware:")
+            for name, info in hardware_usage.items():
+                avg_temp = f"{sum(info['temps'])/len(info['temps']):.2f}" if info['temps'] else "N/A"
+                max_temp = f"{max(info['temps']):.2f}" if info['temps'] else "N/A"
+                usage_time = format_duration(info["time"])
+                data_temps.append([name, info["type"], usage_time, avg_temp, max_temp])
+            
+            print("CPU/GPU Usage and Temperatures:")
             display_table(headers, data_temps)
             input("\nPress Enter to go back")
 
@@ -214,7 +255,7 @@ while 1:
         case "5":
             headers = ["Tracking System", "Total Usage"]
             data_tracking = [[k, format_duration(v)] for k, v in tracking_usage.items()]
-            
+
             print("Usage by Tracking System:")
             display_table(headers, data_tracking)
             input("\nPress Enter to go back")
@@ -225,6 +266,14 @@ while 1:
 
             print("Usage by Operating System:")
             display_table(headers, data_os)
+            input("\nPress Enter to go back")
+
+        case "7":
+            headers = ["Refresh Rate (Hz)", "Total Usage"]
+            data_hz = [[k, format_duration(v)] for k, v in hz_usage.items()]
+
+            print("Usage by Refresh Rate (Hz):")
+            display_table(headers, data_hz)
             input("\nPress Enter to go back")
         
         case "0":
