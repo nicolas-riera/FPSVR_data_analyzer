@@ -20,6 +20,8 @@ game_fps = {}
 cpu_temps_dict = {}
 gpu_temps_dict = {}
 steamvr_usage = {}
+tracking_usage = {}
+os_usage = {}
 
 print("\033[?25l", end="", flush=True)
 
@@ -121,6 +123,14 @@ for root, dirs, files in os.walk(HISTORY_DIR):
                         else:
                             steamvr_usage[version][hmd] = duration
 
+                    if "TrackingSystem" in data:
+                        tracking = data["TrackingSystem"]
+                        tracking_usage[tracking] = tracking_usage.get(tracking, 0) + duration
+
+                    if "OS" in data:
+                        os_name = data["OS"]
+                        os_usage[os_name] = os_usage.get(os_name, 0) + duration
+
             progress_file_count += 1
 
             bar_length = 40
@@ -146,6 +156,8 @@ while 1:
     "2. Game playtime and average FPS\n"
     "3. CPU/GPU temperatures by hardware\n"
     "4. SteamVR Version usage\n"
+    "5. Usage by Tracking System\n"
+    "6. Usage by OS\n"
     "0. Exit\n"
     )
 
@@ -197,6 +209,22 @@ while 1:
 
             print("Most used VR headset per SteamVR version:")
             display_table(headers, data_versions)
+            input("\nPress Enter to go back")
+
+        case "5":
+            headers = ["Tracking System", "Total Usage"]
+            data_tracking = [[k, format_duration(v)] for k, v in tracking_usage.items()]
+            
+            print("Usage by Tracking System:")
+            display_table(headers, data_tracking)
+            input("\nPress Enter to go back")
+
+        case "6":
+            headers = ["Operating System", "Total Usage"]
+            data_os = [[k, format_duration(v)] for k, v in os_usage.items()]
+
+            print("Usage by Operating System:")
+            display_table(headers, data_os)
             input("\nPress Enter to go back")
         
         case "0":
