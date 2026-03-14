@@ -145,7 +145,7 @@ while 1:
     "1. VR headsets with time usage\n"
     "2. Game playtime and average FPS\n"
     "3. CPU/GPU temperatures by hardware\n"
-    "4. SteamVR Version usage"
+    "4. SteamVR Version usage\n"
     "0. Exit\n"
     )
 
