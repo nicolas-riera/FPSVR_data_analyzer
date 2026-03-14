@@ -17,6 +17,8 @@ HISTORY_DIR = os.path.join(documents_path, "fpsVR", "History")
 hmd_usage = {}
 game_time = {}
 game_fps = {}
+cpu_temps_dict = {}
+gpu_temps_dict = {}
 
 print("\033[?25l", end="", flush=True)
 
@@ -94,6 +96,18 @@ for root, dirs, files in os.walk(HISTORY_DIR):
                             game_fps[app]["total_time"] += duration
                         else:
                             game_fps[app] = {"total_fps": fps_session * duration, "total_time": duration}
+
+                    if "cpu" in data:
+                        cpu_name = data["cpu"].strip()
+                        for key in ["CPU_Tavg", "CPU_Tmax"]:
+                            if key in data and data[key] <= 120:
+                                cpu_temps_dict.setdefault(cpu_name, []).append(data[key])
+                    if "gpuSpeedVendor" in data:
+                        gpu_name = data["gpuSpeedVendor"].strip()
+                        for key in ["GPU_Tavg", "GPU_Tmax"]:
+                            if key in data and data[key] <= 120:
+                                gpu_temps_dict.setdefault(gpu_name, []).append(data[key])
+
             progress_file_count += 1
 
             bar_length = 40
@@ -113,7 +127,13 @@ while 1:
     
     print("\033[?25h", end="", flush=True)
     
-    usr_choice = input("Which data do you want to see:\n1. VR headsets with time usage\n2. Game playtime and average FPS\n0. Exit\n")
+    usr_choice = input(
+    "Which data do you want to see:\n"
+    "1. VR headsets with time usage\n"
+    "2. Game playtime and average FPS\n"
+    "3. CPU/GPU temperatures by hardware\n"
+    "0. Exit\n"
+    )
 
     os.system("cls")
 
@@ -138,6 +158,18 @@ while 1:
             
             print("Game playtime and average FPS:")
             display_table(headers, data)
+            input("\nPress Enter to go back")
+
+        case "3":
+            headers = ["Hardware", "Type", "Average Temp (°C)", "Max Temp (°C)"]
+            data_temps = []
+            for name, temps in cpu_temps_dict.items():
+                data_temps.append([name, "CPU", f"{sum(temps)/len(temps):.2f}", f"{max(temps):.2f}"])
+            for name, temps in gpu_temps_dict.items():
+                data_temps.append([name, "GPU", f"{sum(temps)/len(temps):.2f}", f"{max(temps):.2f}"])
+
+            print("CPU/GPU Temperatures by hardware:")
+            display_table(headers, data_temps)
             input("\nPress Enter to go back")
         
         case "0":
