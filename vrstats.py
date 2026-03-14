@@ -46,7 +46,7 @@ def display_table(headers, data):
         max_col = len(str(headers[i]))
         for row in data:
             max_col = max(max_col, len(str(row[i])))
-        col_widths.append(max_col + 2)  # ajout de padding
+        col_widths.append(max_col + 2)  
 
     def top_separator():
         print("┌" + "┬".join("─" * w for w in col_widths) + "┐")
