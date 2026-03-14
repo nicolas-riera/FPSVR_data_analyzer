@@ -38,6 +38,32 @@ def format_duration(seconds):
     secs = int(seconds % 60)
     return f"{hours}h {minutes}m {secs}s"
 
+def display_table(headers, data):
+    col_widths = []
+    for i in range(len(headers)):
+        max_col = len(str(headers[i]))
+        for row in data:
+            max_col = max(max_col, len(str(row[i])))
+        col_widths.append(max_col + 2)  # ajout de padding
+
+    def top_separator():
+        print("┌" + "┬".join("─" * w for w in col_widths) + "┐")
+
+    def middle_separator():
+        print("├" + "┼".join("─" * w for w in col_widths) + "┤")
+
+    def bottom_separator():
+        print("└" + "┴".join("─" * w for w in col_widths) + "┘")
+
+    top_separator()
+    print("│" + "│".join(str(headers[i]).center(col_widths[i]) for i in range(len(headers))) + "│")
+    middle_separator()
+
+    for row in data:
+        print("│" + "│".join(str(row[i]).center(col_widths[i]) for i in range(len(row))) + "│")
+
+    bottom_separator()
+
 total_files = len([os.path.join(r, f) for r, _, files in os.walk(HISTORY_DIR) for f in files if f.endswith(".json")])
 
 progress_file_count = 0
@@ -95,15 +121,23 @@ while 1:
 
     match usr_choice:
         case "1":
+
+            headers = ["VR Headset", "Total Usage"]
+            data = [[h, format_duration(t)] for h, t in hmd_usage.items()]
+
             print("VR headsets with time usage:")
-            for h, t in hmd_usage.items():
-                print(f"- {h} : {format_duration(t)}")
+            display_table(headers, data)
             input("\nPress Enter to go back")
         case "2":
-            print("Game playtime and average FPS:")
+            headers = ["Game", "Playtime", "Average FPS"]
+            data = []
+
             for app, t in game_time.items():
                 avg_fps = game_fps[app]["total_fps"] / game_fps[app]["total_time"] if app in game_fps else 0
-                print(f"- {app} : {format_duration(t)} | FPS moyen : {avg_fps:.2f}")
+                data.append([app, format_duration(t), f"{avg_fps:.2f}"])
+            
+            print("Game playtime and average FPS:")
+            display_table(headers, data)
             input("\nPress Enter to go back")
         
         case "0":
