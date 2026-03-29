@@ -10,7 +10,7 @@ class App(ctk.CTk):
     def __init__(self):
         super().__init__()
 
-        self.title("")
+        self.title("FPSVR Data Analyzer")
         self.geometry("800x800")
 
         self.container = ctk.CTkFrame(master=self)
