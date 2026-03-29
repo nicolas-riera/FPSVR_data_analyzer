@@ -1,3 +1,8 @@
+# Important Note 
+### This branch is here as a archival purpose, if you still want to use the older CLI version. It won't be updated and contributions on this branch won't be accepted.
+
+---
+
 # FPSVR Data Analyzer
 
 ![pythonversion](https://img.shields.io/badge/python-3.10+-blue)
@@ -31,7 +36,7 @@ This utility displays:
 
 Note : This tool assumes that you're on Windows. It has not been tested on Linux and may not even work.
 
-Download the utility from the [releases](https://github.com/nicolas-riera/FPSVR_data_analyzer/releases/latest) and execute it.
+Download the utility from the [releases](https://github.com/nicolas-riera/FPSVR_data_analyzer/releases/tag/1.1) and execute it.
 
 You can navigate with numbers and by pressing on Enter.
 
