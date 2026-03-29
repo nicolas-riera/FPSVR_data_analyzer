@@ -7,8 +7,6 @@ from src.MenuUI import MenuUI
 from src.GraphUI import GraphUI
 from src.ressource_path import resource_path
 
-
-
 class App(ctk.CTk):
     def __init__(self):
         super().__init__()
@@ -68,7 +66,7 @@ class App(ctk.CTk):
         self.label.destroy()
         self.bottom_frame.destroy()
 
-        self.menu.refresh_btn.configure(state="normal")
+        self.menu.refresh_btn.configure(state="normal", text="Refresh Data")
 
     def update_progress(self, progress, count, total):
         def _update():
@@ -164,7 +162,7 @@ class App(ctk.CTk):
     def refresh_data(self):
         self.status_container.destroy()
         self.file_loading_progress_bar()
-        self.menu.refresh_btn.configure(state="disabled")
+        self.menu.refresh_btn.configure(state="disabled", text="...")
         self.menu.disable_buttons()
 
         self.data.cache_manager(mode="cls")

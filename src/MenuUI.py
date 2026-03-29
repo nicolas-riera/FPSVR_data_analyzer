@@ -42,7 +42,7 @@ class MenuUI(ctk.CTkFrame):
 
         self.refresh_btn = ctk.CTkButton(
             self.action_frame,
-            text="Refresh Data",
+            text="...",
             width=180,
             height=40,
             fg_color="#2a9d8f",
