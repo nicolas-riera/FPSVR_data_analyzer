@@ -13,11 +13,9 @@ class GraphUI(ctk.CTkFrame):
         self.headers = headers
         self.data = data
 
-        # --- STYLE ---
         style = ttk.Style()
         style.theme_use("default")
         
-        # On retire le cadre par défaut de Tkinter
         style.layout("Treeview", [('Treeview.treearea', {'sticky': 'nswe'})])
         
         self.custom_row_height = 55 
@@ -37,7 +35,6 @@ class GraphUI(ctk.CTkFrame):
                         padding=5,
                         font=("Roboto", 11, "bold"))
 
-        # --- LAYOUT ---
         self.container = ctk.CTkFrame(self, fg_color="transparent")
         self.container.grid(row=0, column=0, sticky="nsew", padx=20, pady=20)
         self.container.grid_columnconfigure(0, weight=1)
@@ -51,32 +48,25 @@ class GraphUI(ctk.CTkFrame):
         self.table_wrapper.grid_columnconfigure(0, weight=1)
         self.table_wrapper.grid_rowconfigure(0, weight=1)
 
-        # --- TREEVIEW ---
         self.tree = ttk.Treeview(self.table_wrapper, columns=headers, show='headings', selectmode="none")
         
         for i, col in enumerate(headers):
             self.tree.heading(col, text=col)
             
-            # Définition des largeurs fixes, mais TOUT EN CENTRE
             if i == 0:
                 width = 280
             else:
                 width = 110
             
-            # ✨ LA MAGIE EST ICI ✨ : anchor="center" pour tout le monde !
-            # et stretch=True pour remplir tout l'espace dispo.
             self.tree.column(col, width=width, minwidth=width, anchor="center", stretch=True)
 
-        # SÉPARATION DES LIGNES (Alternance)
         self.tree.tag_configure("evenrow", background="#2b2b2b")
         self.tree.tag_configure("oddrow", background="#383838")
 
-        # Insertion avec Wrap manuel
         for index, item in enumerate(self.data):
             processed_item = []
             for i, val in enumerate(item):
                 val_str = str(val)
-                # Le wrapping est conservé pour la première colonne si trop long
                 if i == 0 and len(val_str) > 32:
                     val_str = "\n".join(textwrap.wrap(val_str, width=32))
                 processed_item.append(val_str)
@@ -84,18 +74,15 @@ class GraphUI(ctk.CTkFrame):
             tag = "evenrow" if index % 2 == 0 else "oddrow"
             self.tree.insert("", "end", values=processed_item, tags=(tag,))
 
-        # Désactivation interactions
         self.tree.bind("<Button-1>", lambda e: "break")
         self.tree.bind("<Motion>", lambda e: "break")
 
-        # Scrollbars
         self.v_scrollbar = ctk.CTkScrollbar(self.table_wrapper, orientation="vertical", command=self.tree.yview)
         self.tree.configure(yscrollcommand=self.v_scrollbar.set)
         
         self.tree.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
         self.v_scrollbar.grid(row=0, column=1, sticky="ns", padx=(0, 10), pady=10)
 
-        # Bouton Back
         self.back_button = ctk.CTkButton(self, text="Back", command=self.on_back_callback, width=150)
         self.back_button.grid(row=1, column=0, pady=20)
 
