@@ -1,6 +1,7 @@
 # FPSVR Data Analyzer
 
 ![pythonversion](https://img.shields.io/badge/python-3.10+-blue)
+![ctk](https://img.shields.io/badge/customtkinter-required-yellow)
 
 ```
   _____ ____  _______     ______     ____        _              
@@ -17,7 +18,8 @@
                         |___/                
 ```
 
-This is a Python CLI utility for displaying aggregated FPSVR history data.
+This is a Python utility for displaying aggregated FPSVR history data.  
+It uses [CustomTkinter](https://github.com/tomschimansky/customtkinter) as its graphical interface framework.
 
 ## Features
 
@@ -31,30 +33,40 @@ This utility displays:
 
 Note : This tool assumes that you're on Windows. It has not been tested on Linux and may not even work.
 
-Download the utility from the [releases](https://github.com/nicolas-riera/FPSVR_data_analyzer/releases/latest) and execute it.
-
-You can navigate with numbers and by pressing on Enter.
+Download the utility from the [releases](https://github.com/nicolas-riera/FPSVR_data_analyzer/releases/latest), extract it and then execute ```FPSVR Data Analyser.exe```.
 
 ## Run and Build from source
 
 ### Requirements
 - Python **3.10+**
-- PyInstaller -> ```python -m pip install pyinstaller```
+- PyInstaller
+- CustomTkinter
+- CTKTable
+
+Install dependencies with :
+
+```bash
+python -m pip install -r requirements.txt
+```
 
 ### Run
 
 From the root folder, run :
 
 ```bash
-python vrstats.py
+python main.py
 ```
 
 ### Build
 
-To build the game (in .exe for Windows, in .app on MacOs, and as a binary file on Linux), use pyinstaller :
+To build the program (in .exe for Windows, in .app on MacOs, and as a binary file on Linux), you need first to get the location of customtkiner:
 
 ```bash
-pyinstaller vrstats.py --onefile --icon=img/logo.ico --name "FPSVR Data Analyzer" 
+pip show customtkinter
 ```
 
+Then, copy the location and paste it in this pyinstaller command :
 
+```bash
+pyinstaller main.py --onedir --add-data "{path_to_customtkinter}/customtkinter;customtkinter/" --noconsole --name "FPSVR Data Analyzer" --icon=img/logo.ico
+```
