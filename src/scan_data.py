@@ -2,22 +2,17 @@ import os
 import json
 from datetime import datetime
 import time
+import hashlib
 
 from src.get_folder_path import HISTORY_DIR
+from src.cache_path import get_cache_path
 
 class ProcessFiles:
     def __init__(self, progress_callback=None):
+
+        self.cache_manager("c")
         
-        self.hmd_usage = {}
-        self.game_time = {}
-        self.game_fps = {}
-        self.cpu_temps_dict = {}
-        self.gpu_temps_dict = {}
-        self.hardware_usage = {}
-        self.steamvr_usage = {}
-        self.tracking_usage = {}
-        self.os_usage = {}
-        self.hz_usage = {}
+        self.cache_manager("r")
 
         self.progress_callback = progress_callback
 
@@ -30,6 +25,12 @@ class ProcessFiles:
 
             for file in files:
                 path = os.path.join(root, file)
+
+                file_hash = self.get_file_hash(path)
+                if path in self.file_cache and self.file_cache[path] == file_hash:
+                    self.progress_file_count += 1
+                    continue
+
                 if file.endswith(".json"):
                     with open(path, "r", encoding="utf8") as f:
                         data = json.load(f)
@@ -94,6 +95,7 @@ class ProcessFiles:
                                 hz_val = data["hz"]
                                 self.hz_usage[hz_val] = self.hz_usage.get(hz_val, 0) + duration
 
+                    self.file_cache[path] = file_hash
                     self.progress_file_count += 1
 
                     if self.progress_callback:
@@ -101,6 +103,10 @@ class ProcessFiles:
                         self.progress_callback(progress, self.progress_file_count, self.total_files)
 
                 time.sleep(0.0001) # so CPU can be free for CTK
+
+        if self.progress_callback:
+            progress = self.progress_file_count / self.total_files
+            self.progress_callback(progress, self.progress_file_count, self.total_files)
                         
         print(f"""
         hmd_usage: {self.hmd_usage}
@@ -113,8 +119,71 @@ class ProcessFiles:
         tracking_usage: {self.tracking_usage}
         os_usage: {self.os_usage}
         hz_usage: {self.hz_usage}
-        """)
+        """) # debug only
+
+        self.cache_manager("w") 
     
+    def cache_manager(self, mode):
+        path = get_cache_path("cache.json")
+        match mode:
+            case "c":
+                if not os.path.exists(path):
+                    os.makedirs(os.path.dirname(path), exist_ok=True)
+                    with open(path, "w", encoding="utf-8") as f:
+                        json.dump({}, f)
+            
+            case "r":
+                try:
+                    with open(path, "r", encoding="utf-8") as f:
+                        cache = json.load(f)
+
+                    self.file_cache = cache.get("files", {})
+                    self.hmd_usage = cache.get("hmd_usage", {})
+                    self.game_time = cache.get("game_time", {})
+                    self.game_fps = cache.get("game_fps", {})
+                    self.cpu_temps_dict = cache.get("cpu_temps_dict", {})
+                    self.gpu_temps_dict = cache.get("gpu_temps_dict", {})
+                    self.hardware_usage = cache.get("hardware_usage", {})
+                    self.steamvr_usage = cache.get("steamvr_usage", {})
+                    self.tracking_usage = cache.get("tracking_usage", {})
+                    self.os_usage = cache.get("os_usage", {})
+                    self.hz_usage = cache.get("hz_usage", {})
+
+                except json.JSONDecodeError:
+                    print("Exception : Cache Error ; Recreating new cache.") # Debug only
+                    with open(path, "w", encoding="utf-8") as f:
+                        json.dump({}, f)
+
+            case "w":
+                cache = {
+                    "files": self.file_cache,
+                    "hmd_usage": self.hmd_usage,
+                    "game_time": self.game_time,
+                    "game_fps": self.game_fps,
+                    "cpu_temps_dict": self.cpu_temps_dict,
+                    "gpu_temps_dict": self.gpu_temps_dict,
+
+                    "hardware_usage": self.hardware_usage,
+                    "steamvr_usage": self.steamvr_usage,
+                    "tracking_usage": self.tracking_usage,
+                    "os_usage": self.os_usage,
+                    "hz_usage": self.hz_usage
+                }
+
+                with open(path, "w", encoding="utf8") as f:
+                    json.dump(cache, f, indent=4)  
+
+            case _:
+                print("Cache programming error.") #debug only   
+
+    def get_file_hash(self, path):
+        h = hashlib.sha256()
+
+        with open(path, "rb") as f:
+            while chunk := f.read(8192):
+                h.update(chunk)
+
+        return h.hexdigest()
     
     def processhmd(self, hmd, start, end):
         duration = (end - start).total_seconds()
