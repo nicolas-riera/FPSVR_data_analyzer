@@ -12,6 +12,7 @@ class App(ctk.CTk):
 
         self.title("FPSVR Data Analyzer")
         self.geometry("800x800")
+        self.after(201, lambda :self.iconbitmap(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "img", "logo.ico")))
 
         self.container = ctk.CTkFrame(master=self)
         self.container.pack(fill="both", expand=True)
