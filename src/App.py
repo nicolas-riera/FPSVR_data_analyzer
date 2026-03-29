@@ -1,5 +1,6 @@
 import customtkinter as ctk
 import threading
+import os
 
 from src.scan_data import ProcessFiles
 from src.MenuUI import MenuUI
@@ -27,12 +28,15 @@ class App(ctk.CTk):
 
     # Data loading
     def start_thread(self):
-        threading.Thread(target=self.file_loading).start()
+        t = threading.Thread(target=self.file_loading)
+        t.daemon = True 
+        t.start()
 
     def file_loading(self):
         self.data = ProcessFiles(progress_callback=self.update_progress)
         self.data.run()
-        self.after(1500, self.destroy_loading_widgets)
+        if self.label.cget("text") != "Please wait...":
+            self.after(1500, self.destroy_loading_widgets)
 
     def file_loading_progress_bar(self):
 
@@ -48,8 +52,9 @@ class App(ctk.CTk):
 
         self.progress = ctk.CTkProgressBar(self.bottom_frame, width=300)
         self.progress.grid(row=0, column=0, sticky="w")
+        self.progress.set(0)
 
-        self.label = ctk.CTkLabel(self.bottom_frame, text="Retriving and processing data...")
+        self.label = ctk.CTkLabel(self.bottom_frame, text="Please wait...")
         self.label.grid(row=0, column=1, padx=(10, 0), sticky="w")
 
     def destroy_loading_widgets(self):
@@ -57,16 +62,29 @@ class App(ctk.CTk):
         self.label.destroy()
         self.bottom_frame.destroy()
 
+        self.menu.refresh_btn.configure(state="normal")
+
     def update_progress(self, progress, count, total):
         def _update():
             self.progress.set(progress)
-            self.label.configure(text=f"{count}/{total}")
+            if total != -1:
+                self.label.configure(text=f"{count}/{total}")
+                if count == total:
+                    self.menu.enable_buttons()
+            else:
+                self.label.configure(text="Data Not Found...")   
+             
         self.after(0, _update) 
-
+        
     # Main Menu
     def handle_selection(self, value):
-        print("Selected:", value)
+        print(value)
 
     def refresh_data(self):
-        print("Refreshing data...")
-    
+        self.status_container.destroy()
+        self.file_loading_progress_bar()
+        self.menu.refresh_btn.configure(state="disabled")
+        self.menu.disable_buttons()
+
+        self.data.cache_manager(mode="cls")
+        self.after(300, self.start_thread)

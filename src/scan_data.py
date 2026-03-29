@@ -19,6 +19,15 @@ class ProcessFiles:
     def run(self):
         self.total_files = len([os.path.join(r, f) for r, _, files in os.walk(HISTORY_DIR) for f in files if f.endswith(".json")])
 
+        if self.total_files == 0:
+            if self.progress_callback:
+                progress = 0
+                self.progress_callback(progress, None, -1)
+                return
+            
+        if self.total_files < len(self.file_cache): # avoid cache mismatch
+            self.cache_manager(mode="cls")
+
         self.progress_file_count = 0
 
         for root, dirs, files in os.walk(HISTORY_DIR):
@@ -107,7 +116,9 @@ class ProcessFiles:
         if self.progress_callback:
             progress = self.progress_file_count / self.total_files
             self.progress_callback(progress, self.progress_file_count, self.total_files)
-                        
+
+        self.cache_manager("w") 
+
         print(f"""
         hmd_usage: {self.hmd_usage}
         game_time: {self.game_time}
@@ -120,8 +131,6 @@ class ProcessFiles:
         os_usage: {self.os_usage}
         hz_usage: {self.hz_usage}
         """) # debug only
-
-        self.cache_manager("w") 
     
     def cache_manager(self, mode):
         path = get_cache_path("cache.json")
@@ -173,6 +182,12 @@ class ProcessFiles:
                 with open(path, "w", encoding="utf8") as f:
                     json.dump(cache, f, indent=4)  
 
+            case "cls":
+                if not os.path.exists(path):
+                    os.makedirs(os.path.dirname(path), exist_ok=True)
+                with open(path, "w", encoding="utf-8") as f:
+                    json.dump({}, f)
+                self.cache_manager(mode="r")
             case _:
                 print("Cache programming error.") #debug only   
 
