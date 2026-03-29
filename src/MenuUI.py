@@ -1,6 +1,5 @@
 import customtkinter as ctk
 
-
 class MenuUI(ctk.CTkFrame):
     def __init__(self, master, on_select, on_refresh, **kwargs):
         super().__init__(master, **kwargs)
