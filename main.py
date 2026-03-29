@@ -1,5 +1,8 @@
 from src.App import App
 
 if __name__ == "__main__":
-    main = App()
+
+    version = "2.11"
+
+    main = App(version)
     main.mainloop()

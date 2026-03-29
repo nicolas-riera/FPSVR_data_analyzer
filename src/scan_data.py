@@ -8,12 +8,13 @@ from src.get_folder_path import HISTORY_DIR
 from src.cache_path import get_cache_path
 
 class ProcessFiles:
-    def __init__(self, progress_callback=None):
+    def __init__(self, version=None, progress_callback=None):
 
         self.cache_manager("c")
         
         self.cache_manager("r")
 
+        self.version = version
         self.progress_callback = progress_callback
 
     def run(self):
@@ -25,7 +26,7 @@ class ProcessFiles:
                 self.progress_callback(progress, None, -1)
                 return
             
-        if self.total_files < len(self.file_cache): # avoid cache mismatch
+        if self.total_files < len(self.file_cache) or self.version != self.cache_version: # avoid cache mismatch
             self.cache_manager(mode="cls")
 
         self.progress_file_count = 0
@@ -119,18 +120,18 @@ class ProcessFiles:
 
         self.cache_manager("w") 
 
-        print(f"""
-        hmd_usage: {self.hmd_usage}
-        game_time: {self.game_time}
-        game_fps: {self.game_fps}
-        cpu_temps_dict: {self.cpu_temps_dict}
-        gpu_temps_dict: {self.gpu_temps_dict}
-        hardware_usage: {self.hardware_usage}
-        steamvr_usage: {self.steamvr_usage}
-        tracking_usage: {self.tracking_usage}
-        os_usage: {self.os_usage}
-        hz_usage: {self.hz_usage}
-        """) # debug only
+        # print(f"""
+        # hmd_usage: {self.hmd_usage}
+        # game_time: {self.game_time}
+        # game_fps: {self.game_fps}
+        # cpu_temps_dict: {self.cpu_temps_dict}
+        # gpu_temps_dict: {self.gpu_temps_dict}
+        # hardware_usage: {self.hardware_usage}
+        # steamvr_usage: {self.steamvr_usage}
+        # tracking_usage: {self.tracking_usage}
+        # os_usage: {self.os_usage}
+        # hz_usage: {self.hz_usage}
+        # """) # debug only
     
     def cache_manager(self, mode):
         path = get_cache_path("cache.json")
@@ -146,6 +147,7 @@ class ProcessFiles:
                     with open(path, "r", encoding="utf-8") as f:
                         cache = json.load(f)
 
+                    self.cache_version = cache.get("version", {})
                     self.file_cache = cache.get("files", {})
                     self.hmd_usage = cache.get("hmd_usage", {})
                     self.game_time = cache.get("game_time", {})
@@ -165,13 +167,13 @@ class ProcessFiles:
 
             case "w":
                 cache = {
+                    "version": self.version,
                     "files": self.file_cache,
                     "hmd_usage": self.hmd_usage,
                     "game_time": self.game_time,
                     "game_fps": self.game_fps,
                     "cpu_temps_dict": self.cpu_temps_dict,
                     "gpu_temps_dict": self.gpu_temps_dict,
-
                     "hardware_usage": self.hardware_usage,
                     "steamvr_usage": self.steamvr_usage,
                     "tracking_usage": self.tracking_usage,

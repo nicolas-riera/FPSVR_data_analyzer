@@ -8,12 +8,14 @@ from src.GraphUI import GraphUI
 from src.ressource_path import resource_path
 
 class App(ctk.CTk):
-    def __init__(self):
+    def __init__(self, version):
         super().__init__()
 
         self.title("FPSVR Data Analyzer")
         self.geometry("800x800")
         self.after(201, lambda :self.iconbitmap(resource_path(os.path.join("img", "logo.ico"))))
+
+        self.version = version
 
         self.container = ctk.CTkFrame(master=self)
         self.container.pack(fill="both", expand=True)
@@ -37,7 +39,7 @@ class App(ctk.CTk):
         t.start()
 
     def file_loading(self):
-        self.data = ProcessFiles(progress_callback=self.update_progress)
+        self.data = ProcessFiles(version=self.version, progress_callback=self.update_progress)
         self.data.run()
         if self.label.cget("text") != "Please wait...":
             self.after(1500, self.destroy_loading_widgets)
