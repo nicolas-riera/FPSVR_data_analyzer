@@ -200,5 +200,3 @@ class ProcessFiles:
         secs = int(seconds % 60)
         return f"{hours}h {minutes}m {secs}s"
 
-
-
