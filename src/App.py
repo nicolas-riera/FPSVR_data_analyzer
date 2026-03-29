@@ -104,7 +104,7 @@ class App(ctk.CTk):
 
             case 3:
                 self.graphlabel = "CPU / GPU Usage & Temps"
-                headers = ["Hardware", "Type", "Usage Time", "Average Temp (°C)", "Max Temp (°C)"]
+                headers = ["Hardware", "Type", "Usage Time", "Avg Temp", "Max Temp"]
                 data = []
                 for name, info in self.data.hardware_usage.items():
                     avg_temp = f"{sum(info['temps'])/len(info['temps']):.2f}" if info['temps'] else "N/A"

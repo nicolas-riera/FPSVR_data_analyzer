@@ -41,7 +41,6 @@ Download the utility from the [releases](https://github.com/nicolas-riera/FPSVR_
 - Python **3.10+**
 - PyInstaller
 - CustomTkinter
-- CTKTable
 
 Install dependencies with :
 
