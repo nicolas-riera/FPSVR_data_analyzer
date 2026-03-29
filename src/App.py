@@ -33,6 +33,7 @@ class App(ctk.CTk):
 
     # Data loading
     def start_thread(self):
+        self.title("FPSVR Data Analyzer - Retriving and processing data...")
         t = threading.Thread(target=self.file_loading)
         t.daemon = True 
         t.start()
@@ -76,8 +77,10 @@ class App(ctk.CTk):
                 self.label.configure(text=f"{count}/{total}")
                 if count == total:
                     self.menu.enable_buttons()
+                    self.title("FPSVR Data Analyzer")
             else:
-                self.label.configure(text="Data Not Found...")   
+                self.label.configure(text="Data Not Found...")  
+                self.title("FPSVR Data Analyzer - Data Not Found") 
              
         self.after(0, _update) 
         
@@ -88,10 +91,12 @@ class App(ctk.CTk):
         
         match value:
             case 1:
+                self.title("FPSVR Data Analyzer - VR Headset Usage")
                 headers = ["VR Headset", "Total Usage"]
                 data = [[h, App.format_duration(t)] for h, t in self.data.hmd_usage.items()]
 
             case 2:
+                self.title("FPSVR Data Analyzer - Game Playtime & Avg FPS")
                 headers = ["Game", "Playtime", "Average FPS"]
                 data = []
 
@@ -100,6 +105,7 @@ class App(ctk.CTk):
                     data.append([app, App.format_duration(t), f"{avg_fps:.2f}"])
 
             case 3:
+                self.title("FPSVR Data Analyzer - CPU / GPU Usage & Temps")
                 headers = ["Hardware", "Type", "Usage Time", "Average Temp (°C)", "Max Temp (°C)"]
                 data = []
                 for name, info in self.data.hardware_usage.items():
@@ -109,6 +115,7 @@ class App(ctk.CTk):
                     data.append([name, info["type"], usage_time, avg_temp, max_temp])
 
             case 4:
+                self.title("FPSVR Data Analyzer - SteamVR Version Usage")
                 headers = ["SteamVR Version", "Most Used HMD", "Usage Time"]
                 data = []
 
@@ -118,18 +125,22 @@ class App(ctk.CTk):
                     data.append([version, most_used_hmd, usage_time])
 
             case 5:
+                self.title("FPSVR Data Analyzer - Tracking System Usage")
                 headers = ["Tracking System", "Total Usage"]
                 data = [[k, App.format_duration(v)] for k, v in self.data.tracking_usage.items()]
 
             case 6:
+                self.title("FPSVR Data Analyzer - OS Usage")
                 headers = ["Operating System", "Total Usage"]
                 data = [[k, App.format_duration(v)] for k, v in self.data.os_usage.items()]
 
             case 7:
+                self.title("FPSVR Data Analyzer - Refresh Rate Usage")
                 headers = ["Refresh Rate (Hz)", "Total Usage"]
                 data = [[k, App.format_duration(v)] for k, v in self.data.hz_usage.items()]
         
             case _:
+                self.title("FPSVR Data Analyzer - ")
                 print("Menu Programming error") #debug only
                 self.menu.pack(fill="both", expand=True, anchor="n")
                 return
@@ -143,6 +154,7 @@ class App(ctk.CTk):
         self.graph_view.pack(fill="both", expand=True)
 
     def show_menu(self):
+        self.title("FPSVR Data Analyzer")
         if hasattr(self, 'graph_view'):
             self.graph_view.destroy()
         self.menu.pack(fill="both", expand=True, anchor="n")

@@ -3,7 +3,7 @@ from CTkTable import CTkTable
 
 class GraphUI(ctk.CTkFrame):
     def __init__(self, master, headers, data, on_back):
-        super().__init__(master, fg_color="transparent")
+        super().__init__(master, fg_color="#333333")
         
         self.grid_rowconfigure(0, weight=1)  
         self.grid_rowconfigure(1, weight=0)  
@@ -13,13 +13,14 @@ class GraphUI(ctk.CTkFrame):
 
         self.show_table(headers, data)
 
-        self.btn_retour = ctk.CTkButton(
+        self.back_button = ctk.CTkButton(
             self, 
             text="Retour", 
             command=self.on_back,
-            width=120
+            width=140,
+            height=30
         )
-        self.btn_retour.grid(row=1, column=0, pady=20, sticky="s")
+        self.back_button.grid(row=1, column=0, pady=20, sticky="s")
 
     def show_table(self, headers, data):
         all_values = [headers] + data
