@@ -34,3 +34,4 @@ class GraphUI(ctk.CTkFrame):
             hover_color="#4a4a4a"
         )
         self.table.pack(expand=True, fill="both")
+        
