@@ -5,6 +5,9 @@ import os
 from src.scan_data import ProcessFiles
 from src.MenuUI import MenuUI
 from src.GraphUI import GraphUI
+from src.ressource_path import resource_path
+
+
 
 class App(ctk.CTk):
     def __init__(self):
@@ -12,7 +15,7 @@ class App(ctk.CTk):
 
         self.title("FPSVR Data Analyzer")
         self.geometry("800x800")
-        self.after(201, lambda :self.iconbitmap(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "img", "logo.ico")))
+        self.after(201, lambda :self.iconbitmap(resource_path(os.path.join("img", "logo.ico"))))
 
         self.container = ctk.CTkFrame(master=self)
         self.container.pack(fill="both", expand=True)

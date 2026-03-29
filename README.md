@@ -68,5 +68,5 @@ pip show customtkinter
 Then, copy the location and paste it in this pyinstaller command :
 
 ```bash
-pyinstaller main.py --onedir --add-data "{path_to_customtkinter}/customtkinter;customtkinter/" --noconsole --name "FPSVR Data Analyzer" --icon=img/logo.ico
+pyinstaller main.py --onedir --add-data "{path_to_customtkinter}/customtkinter;customtkinter/" --add-data "img;img" --noconsole --name "FPSVR Data Analyzer" --icon=img/logo.ico
 ```
