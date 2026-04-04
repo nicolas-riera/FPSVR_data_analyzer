@@ -26,7 +26,10 @@ class ProcessFiles:
                 self.progress_callback(progress, None, -1)
                 return
             
-        if self.total_files < len(self.file_cache) or self.version != self.cache_version: # avoid cache mismatch
+        try :
+            if self.total_files < len(self.file_cache) or self.version != self.cache_version: # avoid cache mismatch
+                self.cache_manager(mode="cls")
+        except:
             self.cache_manager(mode="cls")
 
         self.progress_file_count = 0
