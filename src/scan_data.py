@@ -42,6 +42,9 @@ class ProcessFiles:
                 file_hash = self.get_file_hash(path)
                 if path in self.file_cache and self.file_cache[path] == file_hash:
                     self.progress_file_count += 1
+                    if self.progress_callback and self.progress_file_count % (self.total_files // 10) == 0:
+                        progress = self.progress_file_count / self.total_files
+                        self.progress_callback(progress, self.progress_file_count, self.total_files)
                     continue
 
                 if file.endswith(".json"):
@@ -86,7 +89,7 @@ class ProcessFiles:
                                         self.hardware_usage[gpu_name]["temps"].append(data[key])
 
                             if "SteamVR" in data:
-                                version = data["SteamVR"]
+                                version = str(data["SteamVR"])
                                 hmd = data["hmd"]
                                 duration = (end - start).total_seconds()
                                 if version not in self.steamvr_usage:
@@ -105,7 +108,7 @@ class ProcessFiles:
                                 self.os_usage[os_name] = self.os_usage.get(os_name, 0) + duration
 
                             if "hz" in data:
-                                hz_val = data["hz"]
+                                hz_val = str(data["hz"])
                                 self.hz_usage[hz_val] = self.hz_usage.get(hz_val, 0) + duration
 
                     self.file_cache[path] = file_hash
