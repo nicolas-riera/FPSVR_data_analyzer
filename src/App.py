@@ -50,6 +50,16 @@ class App(ctk.CTk):
         self.status_container.pack(side="bottom", fill="x")
         self.status_container.pack_propagate(False)
 
+        self.version_label = ctk.CTkLabel(
+            self,
+            text=f"v{self.version}" if hasattr(self, "version") else "v?",
+            font=ctk.CTkFont(size=12),
+            text_color="gray",
+            fg_color="#333333"
+        )
+
+        self.version_label.place(relx=1.0, rely=1.0, anchor="se", x=-10, y=-5)
+
         self.bottom_frame = ctk.CTkFrame(self.status_container, fg_color="transparent")
         self.bottom_frame.pack(side="bottom", anchor="w", padx=10, pady=10)
 
@@ -88,6 +98,7 @@ class App(ctk.CTk):
     def handle_selection(self, value):
 
         self.menu.pack_forget()
+        self.version_label.place_forget()
         
         match value:
             case 1:
@@ -160,6 +171,7 @@ class App(ctk.CTk):
         if hasattr(self, 'graph_view'):
             self.graph_view.destroy()
         self.menu.pack(fill="both", expand=True, anchor="n")
+        self.version_label.place(relx=1.0, rely=1.0, anchor="se", x=-10, y=-5)
 
     def refresh_data(self):
         self.status_container.destroy()
