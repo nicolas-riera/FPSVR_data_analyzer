@@ -16,6 +16,7 @@ class App(ctk.CTk):
 
         self.title("FPSVR Data Analyzer")
         self.geometry("800x800")
+        ctk.set_appearance_mode("dark")
         self.after(201, lambda :self.iconbitmap(resource_path(os.path.join("img", "logo.ico"))))
 
         self.version = version
