@@ -33,18 +33,66 @@ class MenuUI(ctk.CTkFrame):
             font=ctk.CTkFont(size=12, slant="italic"),
             text_color="#aaaaaa"
         )
-        self.last_played_label.pack(pady=(0, 20))
+        self.last_played_label.pack(pady=(0, 0))
+
+        self.highlights_frame = ctk.CTkFrame(self.container, fg_color="transparent")
+        self.highlights_frame.pack(pady=10, fill="x")
+
+        self.stat_blocks = []
+        for i in range(3):
+            block = ctk.CTkFrame(self.highlights_frame, fg_color="#2b2b2b", corner_radius=10, height=100)
+            block.grid(row=0, column=i, padx=5, sticky="nsew")
+            
+            block.pack_propagate(False) 
+
+            label = ctk.CTkLabel(
+                block, 
+                text="...", 
+                font=ctk.CTkFont(size=11, weight="bold"), 
+                text_color="#888888"
+            )
+            label.pack(pady=(12, 0), fill="x") 
+            
+            value = ctk.CTkLabel(
+                block, 
+                text="---", 
+                font=ctk.CTkFont(size=12, weight="bold"),
+                wraplength=220, 
+                justify="center"
+            )
+            value.pack(pady=(0, 5), padx=10, fill="both", expand=True)
+            
+            self.stat_blocks.append({"label": label, "value": value})
 
         self.btn_frame = ctk.CTkFrame(self.container, fg_color="transparent")
-        self.btn_frame.pack()
+        self.btn_frame.pack(pady=10)
 
-        self.create_button("VR Headset Usage", 1)
-        self.create_button("Game Playtime & Avg FPS", 2)
-        self.create_button("CPU / GPU Usage & Temps", 3)
-        self.create_button("SteamVR Version Usage", 4)
-        self.create_button("Tracking System Usage", 5)
-        self.create_button("OS Usage", 6)
-        self.create_button("Refresh Rate Usage", 7)
+        menu_items = [
+            ("VR Headset Usage", 1),
+            ("Game Playtime & Avg FPS", 2),
+            ("CPU / GPU Usage & Temps", 3),
+            ("SteamVR Version Usage", 4),
+            ("Tracking System Usage", 5),
+            ("OS Usage", 6),
+            ("Refresh Rate Usage", 7)
+        ]
+
+        for i, (text, value) in enumerate(menu_items):
+            row = i // 2  
+            col = i % 2 
+            
+            btn = ctk.CTkButton(
+                self.btn_frame,
+                text=text,
+                width=240,       
+                height=42,
+                corner_radius=12,
+                font=ctk.CTkFont(size=14),
+                command=lambda v=value: self.on_select(v), 
+                state="disabled"
+            )
+            btn.grid(row=row, column=col, padx=8, pady=6)
+            self.buttons.append(btn)
 
         self.action_frame = ctk.CTkFrame(self.container, fg_color="transparent")
         self.action_frame.pack(pady=(25, 10))
@@ -76,20 +124,6 @@ class MenuUI(ctk.CTkFrame):
 
         self.pack(fill="both", expand=True)
 
-    def create_button(self, text, value):
-        btn = ctk.CTkButton(
-            self.btn_frame,
-            text=text,
-            width=320,         
-            height=42,         
-            corner_radius=12,    
-            font=ctk.CTkFont(size=14),
-            command=lambda: self.on_select(value),
-            state="disabled"
-        )
-        btn.pack(pady=6)
-        self.buttons.append(btn)
-
     def enable_buttons(self):
         for btn in self.buttons:
             btn.configure(state="normal")
@@ -109,6 +143,22 @@ class MenuUI(ctk.CTkFrame):
             self.last_played_label.configure(text="...")
         else:
             self.last_played_label.configure(text="No recent session found")
+
+    def update_highlights(self, stats_dict):
+        if stats_dict == "Refreshing signal":
+            for i in range(3):
+                self.stat_blocks[i]["label"].configure(text="...")
+                self.stat_blocks[i]["value"].configure(text="---")
+            return
+        
+        self.stat_blocks[0]["label"].configure(text="SESSIONS / TOTAL TIME")
+        self.stat_blocks[0]["value"].configure(text=stats_dict['total_sessions'])
+
+        self.stat_blocks[1]["label"].configure(text="MOST USED HEADSET")
+        self.stat_blocks[1]["value"].configure(text=stats_dict['top_hmd'])
+
+        self.stat_blocks[2]["label"].configure(text="TOP GAME & PERF")
+        self.stat_blocks[2]["value"].configure(text=stats_dict['top_game'])
 
     def get_relative_time(date_str):
         if not date_str:

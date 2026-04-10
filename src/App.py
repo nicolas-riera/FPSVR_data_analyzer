@@ -86,8 +86,12 @@ class App(ctk.CTk):
             if total != -1:
                 self.label.configure(text=f"{count}/{total}")
                 if count == total:
+
+                    highlights = self.calculate_highlights()
+
                     self.menu.enable_buttons()
                     self.menu.update_last_played(self.data.last_session)
+                    self.menu.update_highlights(highlights)
                     self.title("FPSVR Data Analyzer")
             else:
                 self.label.configure(text="Data Not Found...")  
@@ -209,6 +213,7 @@ class App(ctk.CTk):
         self.file_loading_progress_bar()
         self.menu.refresh_btn.configure(state="disabled", text="...")
         self.menu.update_last_played("Refreshing signal")
+        self.menu.update_highlights("Refreshing signal")
         self.menu.disable_buttons()
 
         self.data.cache_manager(mode="cls")
@@ -220,3 +225,40 @@ class App(ctk.CTk):
         minutes = int((seconds % 3600) // 60)
         secs = int(seconds % 60)
         return f"{hours}h {minutes}m {secs}s"
+    
+    @staticmethod
+    def truncate_text(text, max_chars=50):
+        if len(text) > max_chars:
+            return text[:max_chars-3] + "..."
+        return text
+    
+    def calculate_highlights(self):
+        total_sessions = len(self.data.file_cache)
+        total_sec = sum(self.data.game_time.values())
+        formatted_time = App.format_duration(total_sec)
+        sessions_time_display = f"{total_sessions} sessions\n{formatted_time}"
+        sessions_time_display = App.truncate_text(sessions_time_display, 50)
+
+        if self.data.hmd_usage:
+            hmd_entry = max(self.data.hmd_usage.items(), key=lambda x: x[1]['duration'])
+            hmd_name = App.truncate_text(hmd_entry[0], 25) 
+            hmd_dur = App.format_duration(hmd_entry[1]['duration'])
+            top_hmd = f"{hmd_name}\n{hmd_dur.split(' ')[0]} {hmd_dur.split(' ')[1]}"
+        else:
+            top_hmd = "N/A"
+
+        if self.data.game_time:
+            full_name = max(self.data.game_time.items(), key=lambda x: x[1])[0]
+            top_game = App.truncate_text(full_name, 45)
+            
+            fps_info = self.data.game_fps.get(full_name, {"total_fps": 0, "total_time": 1})
+            top_game_fps = f"{fps_info['total_fps'] / fps_info['total_time']:.1f}"
+        else:
+            top_game = "N/A"
+            top_game_fps = "0"
+
+        return {
+            "total_sessions": sessions_time_display,
+            "top_hmd": top_hmd,
+            "top_game": f"{top_game}\n{top_game_fps} FPS avg"
+        }
