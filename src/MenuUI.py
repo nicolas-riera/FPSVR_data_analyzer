@@ -152,7 +152,7 @@ class MenuUI(ctk.CTkFrame):
 
     def update_highlights(self, stats_dict):
         if stats_dict == "Refreshing signal":
-            for i in range(5):
+            for i in range(6):
                 self.stat_blocks[i]["label"].configure(text="...")
                 self.stat_blocks[i]["value"].configure(text="---")
             return
