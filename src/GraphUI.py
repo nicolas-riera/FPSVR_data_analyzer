@@ -102,6 +102,14 @@ class GraphUI(ctk.CTkFrame):
         )
         self.back_button.pack(side="left", padx=10)
 
+        self.graph_btn = ctk.CTkButton(
+            self.bottom_frame, 
+            text="Show Graph", 
+            command=self.toggle_graph_view, 
+            width=100
+        )
+        self.graph_btn.pack(side="right", padx=10)
+
         self.export_button = ctk.CTkButton(
             self.bottom_frame, 
             text="Export", 
@@ -159,3 +167,92 @@ class GraphUI(ctk.CTkFrame):
         
         except Exception as e:
             messagebox.showerror("Export Error", f"An error occurred: {e}")
+
+    def toggle_graph_view(self):
+        if hasattr(self, 'canvas_container') and self.canvas_container.winfo_manager():
+            self.canvas_container.grid_forget()
+            self.table_wrapper.grid(row=1, column=0, sticky="nsew") 
+            self.graph_btn.configure(text="Show Graph")
+        else:
+            self.table_wrapper.grid_forget() 
+            self.show_histogram() 
+            self.graph_btn.configure(text="Show Table")
+
+    def show_histogram(self):
+        if hasattr(self, 'canvas_container'):
+            self.canvas_container.grid(row=1, column=0, sticky="nsew")
+        else:
+            self.canvas_container = ctk.CTkFrame(self.container, fg_color="#2b2b2b", corner_radius=10)
+            self.canvas_container.grid(row=1, column=0, sticky="nsew")
+            self.canvas_container.grid_columnconfigure(0, weight=1)
+            self.canvas_container.grid_rowconfigure(0, weight=1)
+
+            self.canvas = ctk.CTkCanvas(self.canvas_container, bg="#2b2b2b", highlightthickness=0)
+            self.scrollbar = ctk.CTkScrollbar(self.canvas_container, orientation="vertical", command=self.canvas.yview)
+            self.canvas.configure(yscrollcommand=self.scrollbar.set)
+
+            self.canvas.grid(row=0, column=0, sticky="nsew", padx=(2,0), pady=2)
+            self.scrollbar.grid(row=0, column=1, sticky="ns", padx=(0,2), pady=2)
+
+            self.canvas.bind_all("<MouseWheel>", lambda e: self.canvas.yview_scroll(int(-1*(e.delta/120)), "units"))
+        
+        self.after(100, self.draw_logic)
+
+    def draw_logic(self):
+        self.update()
+        w = self.canvas.winfo_width()
+        if not self.data or w < 50: return
+
+        def parse_dur(v):
+            s = str(v).lower().replace(',', '.')
+            try:
+                if 'h' in s:
+                    pts = s.split('h')
+                    return float(pts[0].strip()) + (float(pts[1].split('m')[0].strip())/60 if 'm' in pts[1] else 0)
+                return float("".join(c for c in s if c.isdigit() or c in ".-"))
+            except: return 0
+
+        val_idx = 1
+        priority = ["total usage", "playtime", "usage time", "usage %", "total"]
+        for p in priority:
+            for i, h in enumerate(self.headers):
+                if p in h.lower():
+                    val_idx = i
+                    break
+            else: continue
+            break
+
+        parsed = [{"l": str(r[0]), "rv": str(r[val_idx]), "nv": parse_dur(r[val_idx])} for r in self.data]
+        parsed.sort(key=lambda x: x["nv"], reverse=True)
+
+        line_height = 45 
+        total_h = len(parsed) * line_height + 40
+        self.canvas.delete("all")
+        self.canvas.configure(scrollregion=(0, 0, w, total_h))
+
+        m_left, m_right = 180, 120
+        draw_w = w - m_left - m_right
+        max_v = max([x["nv"] for x in parsed]) if parsed and max([x["nv"] for x in parsed]) > 0 else 1
+
+        for i, item in enumerate(parsed):
+            y_mid = 30 + (i * line_height)
+            
+            if i % 2 != 0:
+                self.canvas.create_rectangle(0, y_mid - (line_height/2), w, y_mid + (line_height/2), 
+                                           fill="#323232", outline="")
+
+            bar_w = (item["nv"] / max_v) * draw_w if max_v > 0 else 0
+            
+            y0, y1 = y_mid - 10, y_mid + 10
+            self.canvas.create_rectangle(m_left, y0, m_left + bar_w, y1, 
+                                       fill="#2a9d8f" if i == 0 else "#1f538d", outline="")
+            
+            name_txt = item["l"] if len(item["l"]) < 25 else item["l"][:22] + "..."
+            self.canvas.create_text(m_left - 10, y_mid, text=name_txt, fill="#DCE4EE", 
+                                   anchor="e", font=("Roboto", 10))
+            
+            val_x = m_left + bar_w + 8
+            if val_x > w - 10: val_x = w - 10
+            
+            self.canvas.create_text(val_x, y_mid, text=item["rv"], fill="#2a9d8f", 
+                                   anchor="w", font=("Roboto", 10, "bold"))
