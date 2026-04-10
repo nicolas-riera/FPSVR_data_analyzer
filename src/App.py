@@ -271,9 +271,61 @@ class App(ctk.CTk):
 
         longest_display = f"{max_dur} on {max_game}\n({max_date})"
 
+        hours = self.data.session_hours
+        days = self.data.session_days
+        total_sessions = len(hours)
+
+        if total_sessions < 5:
+            return {"player_profile": "Data Gathering..."}
+
+        from collections import Counter
+        import statistics
+
+        counts = Counter(hours)
+        peak_h = counts.most_common(1)[0][0]
+        
+        def f_ampm(h):
+            return f"{12 if h%12==0 else h%12}{'AM' if h%24<12 else 'PM'}"
+        
+        time_slot = f"{f_ampm(peak_h)}-{f_ampm(peak_h+3)}"
+
+        unique_days = len(set(days))
+        wknd_ratio = sum(1 for d in days if d >= 5) / total_sessions
+        night_ratio = sum(1 for h in hours if h >= 22 or h <= 4) / total_sessions
+        morning_ratio = sum(1 for h in hours if 5 <= h <= 10) / total_sessions
+
+        std_dev = statistics.stdev(hours) if total_sessions > 1 else 10
+
+        if total_sessions > 1000 and unique_days >= 6:
+            arch = "Legendary Addict"
+        elif night_ratio > 0.6:
+            arch = "Vampire Dweller"
+        elif morning_ratio > 0.5:
+            arch = "Early Bird"
+        elif wknd_ratio > 0.75:
+            arch = "Weekend Smasher"
+        elif wknd_ratio < 0.15:
+            arch = "Professional Grinder"
+        elif 0.4 <= wknd_ratio <= 0.6:
+            arch = "Social Nomad"
+        else:
+            arch = "Casual Wanderer"
+
+        if std_dev < 2.5:
+            trait = "Clockwork"
+        elif std_dev > 6:
+            trait = "Chaos"
+        else:
+            trait = "Steady"
+
+        intensity = "High" if total_sessions / unique_days > 5 else "Light"
+        
+        profile_str = f"{arch}\n{time_slot} | {trait} ({intensity})"
+
         return {
             "total_sessions": sessions_time_display,
             "top_hmd": top_hmd,
             "top_game": f"{top_game}\n{top_game_fps} FPS avg",
-            "longest_session_display": longest_display
+            "longest_session_display": longest_display,
+            "player_profile": profile_str
         }

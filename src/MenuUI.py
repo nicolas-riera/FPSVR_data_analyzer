@@ -39,7 +39,7 @@ class MenuUI(ctk.CTkFrame):
         self.highlights_frame.pack(pady=10, fill="x")
 
         self.stat_blocks = []
-        for i in range(4):
+        for i in range(5):
             block = ctk.CTkFrame(self.highlights_frame, fg_color="#2b2b2b", corner_radius=10, height=100)
             
             row = i // 3
@@ -152,7 +152,7 @@ class MenuUI(ctk.CTkFrame):
 
     def update_highlights(self, stats_dict):
         if stats_dict == "Refreshing signal":
-            for i in range(4):
+            for i in range(5):
                 self.stat_blocks[i]["label"].configure(text="...")
                 self.stat_blocks[i]["value"].configure(text="---")
             return
@@ -168,6 +168,9 @@ class MenuUI(ctk.CTkFrame):
 
         self.stat_blocks[3]["label"].configure(text="LONGEST SESSION")
         self.stat_blocks[3]["value"].configure(text=stats_dict['longest_session_display'])
+
+        self.stat_blocks[4]["label"].configure(text="PLAYER PROFILE")
+        self.stat_blocks[4]["value"].configure(text=stats_dict['player_profile'])
 
     def get_relative_time(date_str):
         if not date_str:
