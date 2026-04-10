@@ -196,6 +196,8 @@ class GraphUI(ctk.CTkFrame):
 
             self.canvas.bind("<MouseWheel>", self._on_mousewheel)
             self.canvas_container.bind("<MouseWheel>", self._on_mousewheel)
+
+            self.canvas.bind("<Configure>", self._on_canvas_resize)
         
         self.after(100, self.draw_logic)
 
@@ -213,6 +215,12 @@ class GraphUI(ctk.CTkFrame):
             self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
         except Exception:
             pass 
+
+    def _on_canvas_resize(self, event):
+        if hasattr(self, '_resize_after_id'):
+            self.after_cancel(self._resize_after_id)
+        
+        self._resize_after_id = self.after(500, self.draw_logic)
 
     def draw_logic(self):
         self.update()
