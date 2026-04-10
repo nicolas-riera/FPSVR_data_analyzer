@@ -1,6 +1,10 @@
 import customtkinter as ctk
-from tkinter import ttk
+from tkinter import ttk, filedialog, messagebox
+import datetime
+import csv
+import json
 import textwrap
+import os
 
 class GraphUI(ctk.CTkFrame):
     def __init__(self, master, headers, data, on_back, label):
@@ -12,6 +16,7 @@ class GraphUI(ctk.CTkFrame):
         self.on_back_callback = on_back
         self.headers = headers
         self.data = data
+        self.graphlabel = label
 
         style = ttk.Style()
         style.theme_use("default")
@@ -83,8 +88,74 @@ class GraphUI(ctk.CTkFrame):
         self.tree.grid(row=0, column=0, sticky="nsew", padx=2, pady=2)
         self.v_scrollbar.grid(row=0, column=1, sticky="ns", padx=(0, 2), pady=2)
 
-        self.back_button = ctk.CTkButton(self, text="Back", command=self.on_back_callback, width=120, height=28)
-        self.back_button.grid(row=1, column=0, pady=15)
+        self.bottom_frame = ctk.CTkFrame(self, fg_color="transparent")
+        self.bottom_frame.grid(row=1, column=0, pady=15)
+
+        self.back_button = ctk.CTkButton(
+            self.bottom_frame, 
+            text="Back", 
+            command=self.on_back_callback, 
+            width=120, 
+            height=28,
+            fg_color="#444444",
+            hover_color="#555555"
+        )
+        self.back_button.pack(side="left", padx=10)
+
+        self.export_button = ctk.CTkButton(
+            self.bottom_frame, 
+            text="Export", 
+            command=self.export_data, 
+            width=120, 
+            height=28,
+            fg_color="#2a9d8f",
+            hover_color="#21867a"
+        )
+        self.export_button.pack(side="left", padx=10)
 
     def on_back_with_loading(self):
         self.on_back_callback()
+
+    def export_data(self):
+        if not self.data:
+            return
+
+        name_to_clean = self.graphlabel.replace("/", "_").replace("&", "and")
+        
+        clean_label = "".join([
+            c for c in name_to_clean 
+            if c.isalnum() or c in (' ', '_', '-')
+        ]).strip()
+        
+        while "  " in clean_label:
+            clean_label = clean_label.replace("  ", " ")
+
+        now = datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S")
+        default_filename = f"{clean_label}_{now}"
+
+        file_path = filedialog.asksaveasfilename(
+            initialfile=default_filename,
+            defaultextension=".csv",
+            filetypes=[("CSV File", "*.csv"), ("JSON File", "*.json")],
+            title="Export Data"
+        )
+
+        if not file_path:
+            return
+
+        try:
+            if file_path.endswith(".json"):
+                export_dict = [dict(zip(self.headers, row)) for row in self.data]
+                with open(file_path, "w", encoding="utf-8") as f:
+                    json.dump(export_dict, f, indent=4, ensure_ascii=False)
+            
+            else:
+                with open(file_path, "w", newline="", encoding="utf-8-sig") as f:
+                    writer = csv.writer(f, delimiter=";")
+                    writer.writerow(self.headers)
+                    writer.writerows(self.data)
+
+            messagebox.showinfo("Export Successful", f"Data exported as {os.path.basename(file_path)}")
+        
+        except Exception as e:
+            messagebox.showerror("Export Error", f"An error occurred: {e}")
