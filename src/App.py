@@ -264,8 +264,16 @@ class App(ctk.CTk):
             top_game = "N/A"
             top_game_fps = "0"
 
+        record = self.data.longest_session
+        max_dur = App.format_duration(record["duration"])
+        max_game = App.truncate_text(record["app"], 20)
+        max_date = record["date"]
+
+        longest_display = f"{max_dur} on {max_game}\n({max_date})"
+
         return {
             "total_sessions": sessions_time_display,
             "top_hmd": top_hmd,
-            "top_game": f"{top_game}\n{top_game_fps} FPS avg"
+            "top_game": f"{top_game}\n{top_game_fps} FPS avg",
+            "longest_session_display": longest_display
         }

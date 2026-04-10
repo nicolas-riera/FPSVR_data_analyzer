@@ -39,10 +39,13 @@ class MenuUI(ctk.CTkFrame):
         self.highlights_frame.pack(pady=10, fill="x")
 
         self.stat_blocks = []
-        for i in range(3):
+        for i in range(4):
             block = ctk.CTkFrame(self.highlights_frame, fg_color="#2b2b2b", corner_radius=10, height=100)
-            block.grid(row=0, column=i, padx=5, sticky="nsew")
             
+            row = i // 3
+            col = i % 3
+            
+            block.grid(row=row, column=col, padx=5, pady=5, sticky="nsew")
             block.pack_propagate(False) 
 
             label = ctk.CTkLabel(
@@ -63,6 +66,9 @@ class MenuUI(ctk.CTkFrame):
             value.pack(pady=(0, 5), padx=10, fill="both", expand=True)
             
             self.stat_blocks.append({"label": label, "value": value})
+
+        for c in range(3):
+            self.highlights_frame.grid_columnconfigure(c, weight=1)
 
         self.btn_frame = ctk.CTkFrame(self.container, fg_color="transparent")
         self.btn_frame.pack(pady=10)
@@ -146,7 +152,7 @@ class MenuUI(ctk.CTkFrame):
 
     def update_highlights(self, stats_dict):
         if stats_dict == "Refreshing signal":
-            for i in range(3):
+            for i in range(4):
                 self.stat_blocks[i]["label"].configure(text="...")
                 self.stat_blocks[i]["value"].configure(text="---")
             return
@@ -159,6 +165,9 @@ class MenuUI(ctk.CTkFrame):
 
         self.stat_blocks[2]["label"].configure(text="TOP GAME & PERF")
         self.stat_blocks[2]["value"].configure(text=stats_dict['top_game'])
+
+        self.stat_blocks[3]["label"].configure(text="LONGEST SESSION")
+        self.stat_blocks[3]["value"].configure(text=stats_dict['longest_session_display'])
 
     def get_relative_time(date_str):
         if not date_str:

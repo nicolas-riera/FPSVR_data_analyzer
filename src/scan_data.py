@@ -60,6 +60,13 @@ class ProcessFiles:
 
                             duration = self.processhmd(data["hmd"], start, end, bx, by)
 
+                            if duration > self.longest_session["duration"]:
+                                self.longest_session = {
+                                    "duration": duration,
+                                    "app": data["app"],
+                                    "date": start.strftime("%Y-%m-%d")
+                                }
+
                             app = data["app"]
                             if app in self.game_time:
                                 self.game_time[app] += duration
@@ -193,6 +200,7 @@ class ProcessFiles:
                     self.hmd_usage = cache.get("hmd_usage", {})
                     self.game_time = cache.get("game_time", {})
                     self.game_fps = cache.get("game_fps", {})
+                    self.longest_session = cache.get("longest_session", {"duration": 0, "app": "N/A", "date": "N/A"})
                     self.cpu_temps_dict = cache.get("cpu_temps_dict", {})
                     self.gpu_temps_dict = cache.get("gpu_temps_dict", {})
                     self.hardware_usage = cache.get("hardware_usage", {})
@@ -214,6 +222,7 @@ class ProcessFiles:
                     "hmd_usage": self.hmd_usage,
                     "game_time": self.game_time,
                     "game_fps": self.game_fps,
+                    "longest_session": self.longest_session,
                     "cpu_temps_dict": self.cpu_temps_dict,
                     "gpu_temps_dict": self.gpu_temps_dict,
                     "hardware_usage": self.hardware_usage,
