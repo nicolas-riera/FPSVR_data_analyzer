@@ -54,7 +54,11 @@ class ProcessFiles:
                         if isinstance(data, dict) and "hmd" in data and "DateStart" in data and "DateEnd" in data and "app" in data:
                             start = datetime.fromisoformat(data["DateStart"])
                             end = datetime.fromisoformat(data["DateEnd"])
-                            duration = self.processhmd(data["hmd"], start, end)
+
+                            bx = data.get("baseX", 0)
+                            by = data.get("baseY", 0)
+
+                            duration = self.processhmd(data["hmd"], start, end, bx, by)
 
                             app = data["app"]
                             if app in self.game_time:
@@ -240,15 +244,17 @@ class ProcessFiles:
 
         return h.hexdigest()
     
-    def processhmd(self, hmd, start, end):
+    def processhmd(self, hmd, start, end, bx=0, by=0):
         duration = (end - start).total_seconds()
         current_date = start.strftime("%Y-%m-%d")
+        res_key = f"{bx}x{by}" if bx > 0 and by > 0 else None
 
         if hmd not in self.hmd_usage:
             self.hmd_usage[hmd] = {
                 "duration": duration,
                 "first_seen": current_date,
-                "last_seen": current_date
+                "last_seen": current_date,
+                "resolutions": {res_key: 1} if res_key else {} # On initialise le compteur
             }
         else:
             entry = self.hmd_usage[hmd]
@@ -256,11 +262,17 @@ class ProcessFiles:
                 entry["duration"] += duration
                 if current_date < entry["first_seen"]: entry["first_seen"] = current_date
                 if current_date > entry["last_seen"]: entry["last_seen"] = current_date
+                
+                if res_key:
+                    if "resolutions" not in entry:
+                        entry["resolutions"] = {}
+                    entry["resolutions"][res_key] = entry["resolutions"].get(res_key, 0) + 1
             else:
                 self.hmd_usage[hmd] = {
                     "duration": entry + duration,
                     "first_seen": current_date,
-                    "last_seen": current_date
+                    "last_seen": current_date,
+                    "resolutions": {res_key: 1} if res_key else {}
                 }
                 
         return duration

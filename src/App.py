@@ -108,10 +108,16 @@ class App(ctk.CTk):
         match value:
             case 1:
                 self.graphlabel = "VR Headset Usage"
-                headers = ["VR Headset", "Usage Period", "Total Usage"]
+                headers = ["VR Headset", "Resolution", "Usage Period", "Total Usage"]
                 data = []
 
                 for hmd_name, stats in self.data.hmd_usage.items():
+                    resolutions = stats.get('resolutions', {})
+                    if resolutions:
+                        most_used_res = max(resolutions.items(), key=lambda x: x[1])[0]
+                    else:
+                        most_used_res = "N/A"
+
                     if stats['first_seen'] == stats['last_seen']:
                         date_range = stats['first_seen']
                     else:
@@ -119,6 +125,7 @@ class App(ctk.CTk):
                     
                     data.append([
                         hmd_name, 
+                        most_used_res, 
                         date_range, 
                         App.format_duration(stats["duration"])
                     ])
