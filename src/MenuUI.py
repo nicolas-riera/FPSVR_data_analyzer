@@ -39,7 +39,7 @@ class MenuUI(ctk.CTkFrame):
         self.highlights_frame.pack(pady=10, fill="x")
 
         self.stat_blocks = []
-        for i in range(5):
+        for i in range(6):
             block = ctk.CTkFrame(self.highlights_frame, fg_color="#2b2b2b", corner_radius=10, height=100)
             
             row = i // 3
@@ -157,20 +157,26 @@ class MenuUI(ctk.CTkFrame):
                 self.stat_blocks[i]["value"].configure(text="---")
             return
         
-        self.stat_blocks[0]["label"].configure(text="SESSIONS / TOTAL TIME")
-        self.stat_blocks[0]["value"].configure(text=stats_dict['total_sessions'])
+        labels = [
+            "SESSIONS / TOTAL TIME", 
+            "MOST USED HEADSET", 
+            "TOP GAME & PERF", 
+            "LONGEST SESSION", 
+            "PLAYER PROFILE", 
+            "SESSION ENDURANCE"
+        ]
+        keys = [
+            "total_sessions", 
+            "top_hmd", 
+            "top_game", 
+            "longest_session_display", 
+            "player_profile", 
+            "endurance"
+        ]
 
-        self.stat_blocks[1]["label"].configure(text="MOST USED HEADSET")
-        self.stat_blocks[1]["value"].configure(text=stats_dict['top_hmd'])
-
-        self.stat_blocks[2]["label"].configure(text="TOP GAME & PERF")
-        self.stat_blocks[2]["value"].configure(text=stats_dict['top_game'])
-
-        self.stat_blocks[3]["label"].configure(text="LONGEST SESSION")
-        self.stat_blocks[3]["value"].configure(text=stats_dict['longest_session_display'])
-
-        self.stat_blocks[4]["label"].configure(text="PLAYER PROFILE")
-        self.stat_blocks[4]["value"].configure(text=stats_dict['player_profile'])
+        for i in range(6):
+            self.stat_blocks[i]["label"].configure(text=labels[i])
+            self.stat_blocks[i]["value"].configure(text=stats_dict.get(keys[i], "---"))
 
     def get_relative_time(date_str):
         if not date_str:

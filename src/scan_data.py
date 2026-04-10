@@ -60,6 +60,7 @@ class ProcessFiles:
 
                             duration = self.processhmd(data["hmd"], start, end, bx, by)
 
+                            self.all_session_durations.append(duration)
                             self.session_hours.append(start.hour)
                             self.session_days.append(start.weekday())
 
@@ -199,6 +200,7 @@ class ProcessFiles:
 
                     self.cache_version = cache.get("version", {})
                     self.file_cache = cache.get("files", {}) 
+                    self.all_session_durations = cache.get("all_session_durations", [])
                     self.session_hours = cache.get("session_hours", [])
                     self.session_days = cache.get("session_days", [])
                     self.last_session = cache.get("last_session", {})
@@ -224,6 +226,7 @@ class ProcessFiles:
                     "version": self.version,
                     "files": self.file_cache,
                     "last_session": self.last_session,
+                    "all_session_durations": self.all_session_durations,
                     "session_hours": self.session_hours,
                     "session_days": self.session_days,
                     "hmd_usage": self.hmd_usage,

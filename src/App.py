@@ -1,6 +1,9 @@
 import customtkinter as ctk
 import threading
 import os
+from collections import Counter
+import statistics
+
 
 from src.scan_data import ProcessFiles
 from src.MenuUI import MenuUI
@@ -278,9 +281,6 @@ class App(ctk.CTk):
         if total_sessions < 5:
             return {"player_profile": "Data Gathering..."}
 
-        from collections import Counter
-        import statistics
-
         counts = Counter(hours)
         peak_h = counts.most_common(1)[0][0]
         
@@ -322,10 +322,24 @@ class App(ctk.CTk):
         
         profile_str = f"{arch}\n{time_slot} | {trait} ({intensity})"
 
+        significant_durations = [d for d in self.data.all_session_durations if d > 900]
+        
+        if significant_durations:
+            avg_sec = sum(significant_durations) / len(significant_durations)
+            typical_sec = statistics.median(significant_durations)
+            
+            avg_disp = App.format_duration(avg_sec)
+            typical_disp = App.format_duration(typical_sec)
+            
+            endurance_str = f"Avg: {avg_disp}\nTypical: {typical_disp}"
+        else:
+            endurance_str = "No Long Sessions"
+
         return {
             "total_sessions": sessions_time_display,
             "top_hmd": top_hmd,
             "top_game": f"{top_game}\n{top_game_fps} FPS avg",
             "longest_session_display": longest_display,
-            "player_profile": profile_str
+            "player_profile": profile_str,
+            "endurance": endurance_str
         }
