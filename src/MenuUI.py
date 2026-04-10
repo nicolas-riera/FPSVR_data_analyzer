@@ -84,8 +84,8 @@ class MenuUI(ctk.CTkFrame):
         ]
 
         for i, (text, value) in enumerate(menu_items):
-            row = i // 2  
-            col = i % 2 
+            row = i // 3  
+            col = i % 3
             
             btn = ctk.CTkButton(
                 self.btn_frame,
