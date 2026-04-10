@@ -92,12 +92,22 @@ class ProcessFiles:
                                 version = str(data["SteamVR"])
                                 hmd = data["hmd"]
                                 duration = (end - start).total_seconds()
+                                current_date = start.strftime("%Y-%m-%d") 
+
                                 if version not in self.steamvr_usage:
                                     self.steamvr_usage[version] = {}
-                                if hmd in self.steamvr_usage[version]:
-                                    self.steamvr_usage[version][hmd] += duration
+                                
+                                if hmd not in self.steamvr_usage[version]:
+                                    self.steamvr_usage[version][hmd] = {
+                                        "duration": duration,
+                                        "first_seen": current_date,
+                                        "last_seen": current_date
+                                    }
                                 else:
-                                    self.steamvr_usage[version][hmd] = duration
+                                    entry = self.steamvr_usage[version][hmd]
+                                    entry["duration"] += duration
+                                    if current_date < entry["first_seen"]: entry["first_seen"] = current_date
+                                    if current_date > entry["last_seen"]: entry["last_seen"] = current_date
 
                             if "TrackingSystem" in data:
                                 tracking = data["TrackingSystem"]
@@ -105,7 +115,19 @@ class ProcessFiles:
 
                             if "OS" in data:
                                 os_name = data["OS"]
-                                self.os_usage[os_name] = self.os_usage.get(os_name, 0) + duration
+                                current_date = start.strftime("%Y-%m-%d")
+
+                                if os_name not in self.os_usage:
+                                    self.os_usage[os_name] = {
+                                        "duration": 0,
+                                        "first_seen": current_date,
+                                        "last_seen": current_date
+                                    }
+                                
+                                entry = self.os_usage[os_name]
+                                entry["duration"] += duration
+                                if current_date < entry["first_seen"]: entry["first_seen"] = current_date
+                                if current_date > entry["last_seen"]: entry["last_seen"] = current_date
 
                             if "hz" in data:
                                 hz_val = str(data["hz"])
@@ -210,8 +232,25 @@ class ProcessFiles:
     
     def processhmd(self, hmd, start, end):
         duration = (end - start).total_seconds()
-        if hmd in self.hmd_usage:
-            self.hmd_usage[hmd] += duration
+        current_date = start.strftime("%Y-%m-%d")
+
+        if hmd not in self.hmd_usage:
+            self.hmd_usage[hmd] = {
+                "duration": duration,
+                "first_seen": current_date,
+                "last_seen": current_date
+            }
         else:
-            self.hmd_usage[hmd] = duration
+            entry = self.hmd_usage[hmd]
+            if isinstance(entry, dict):
+                entry["duration"] += duration
+                if current_date < entry["first_seen"]: entry["first_seen"] = current_date
+                if current_date > entry["last_seen"]: entry["last_seen"] = current_date
+            else:
+                self.hmd_usage[hmd] = {
+                    "duration": entry + duration,
+                    "first_seen": current_date,
+                    "last_seen": current_date
+                }
+                
         return duration

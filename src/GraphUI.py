@@ -54,6 +54,8 @@ class GraphUI(ctk.CTkFrame):
             self.tree.heading(col, text=col)
             if i == 0:
                 width = 280
+            elif "Usage Period" in col :
+                width = 220
             else:
                 width = 100
             self.tree.column(col, width=width, minwidth=width, anchor="center", stretch=True)

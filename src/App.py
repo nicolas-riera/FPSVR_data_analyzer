@@ -103,8 +103,20 @@ class App(ctk.CTk):
         match value:
             case 1:
                 self.graphlabel = "VR Headset Usage"
-                headers = ["VR Headset", "Total Usage"]
-                data = [[h, App.format_duration(t)] for h, t in self.data.hmd_usage.items()]
+                headers = ["VR Headset", "Usage Period", "Total Usage"]
+                data = []
+
+                for hmd_name, stats in self.data.hmd_usage.items():
+                    if stats['first_seen'] == stats['last_seen']:
+                        date_range = stats['first_seen']
+                    else:
+                        date_range = f"{stats['first_seen']} -> {stats['last_seen']}"
+                    
+                    data.append([
+                        hmd_name, 
+                        date_range, 
+                        App.format_duration(stats["duration"])
+                    ])
 
             case 2:
                 self.graphlabel = "Game Playtime & Avg FPS"
@@ -127,13 +139,20 @@ class App(ctk.CTk):
 
             case 4:
                 self.graphlabel = "SteamVR Version Usage"
-                headers = ["SteamVR Version", "Most Used HMD", "Usage Time"]
+                headers = ["SteamVR Version", "Most Used HMD", "Usage Period", "Usage Time"]
                 data = []
 
                 for version, hmds in self.data.steamvr_usage.items():
-                    most_used_hmd = max(hmds, key=hmds.get)
-                    usage_time = App.format_duration(hmds[most_used_hmd])
-                    data.append([version, most_used_hmd, usage_time])
+                    most_used_hmd = max(hmds, key=lambda x: hmds[x]["duration"])
+                    
+                    total_sec = sum(h["duration"] for h in hmds.values())
+                    first_day = min(h["first_seen"] for h in hmds.values())
+                    last_day = max(h["last_seen"] for h in hmds.values())
+                    
+                    date_range = first_day if first_day == last_day else f"{first_day} -> {last_day}"
+                    usage_time = App.format_duration(total_sec)
+                    
+                    data.append([version, most_used_hmd, date_range, usage_time])
 
             case 5:
                 self.graphlabel = "Tracking System Usage"
@@ -142,8 +161,19 @@ class App(ctk.CTk):
 
             case 6:
                 self.graphlabel = "OS Usage"
-                headers = ["Operating System", "Total Usage"]
-                data = [[k, App.format_duration(v)] for k, v in self.data.os_usage.items()]
+                headers = ["Operating System", "Usage Period", "Total Usage"]
+                data = []
+                
+                for os_name, stats in self.data.os_usage.items():
+                    if stats['first_seen'] == stats['last_seen']:
+                        date_range = stats['first_seen']
+                    else:
+                        date_range = f"{stats['first_seen']} -> {stats['last_seen']}"
+                    data.append([
+                        os_name, 
+                        date_range, 
+                        App.format_duration(stats["duration"])
+                    ])
 
             case 7:
                 self.graphlabel = "Refresh Rate Usage"
