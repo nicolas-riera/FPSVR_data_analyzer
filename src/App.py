@@ -87,6 +87,7 @@ class App(ctk.CTk):
                 self.label.configure(text=f"{count}/{total}")
                 if count == total:
                     self.menu.enable_buttons()
+                    self.menu.update_last_played(self.data.last_session)
                     self.title("FPSVR Data Analyzer")
             else:
                 self.label.configure(text="Data Not Found...")  
@@ -207,6 +208,7 @@ class App(ctk.CTk):
         self.status_container.destroy()
         self.file_loading_progress_bar()
         self.menu.refresh_btn.configure(state="disabled", text="...")
+        self.menu.update_last_played("Refreshing signal")
         self.menu.disable_buttons()
 
         self.data.cache_manager(mode="cls")

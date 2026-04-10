@@ -1,4 +1,5 @@
 import customtkinter as ctk
+from datetime import datetime, timezone
 
 class MenuUI(ctk.CTkFrame):
     def __init__(self, master, on_select, on_refresh, **kwargs):
@@ -24,7 +25,15 @@ class MenuUI(ctk.CTkFrame):
             text="Which data do you want to see?",
             font=ctk.CTkFont(size=16)
         )
-        self.subtitle.pack(pady=(0, 25))
+        self.subtitle.pack(pady=(0, 0))
+
+        self.last_played_label = ctk.CTkLabel(
+            self.container,
+            text="...", 
+            font=ctk.CTkFont(size=12, slant="italic"),
+            text_color="#aaaaaa"
+        )
+        self.last_played_label.pack(pady=(0, 20))
 
         self.btn_frame = ctk.CTkFrame(self.container, fg_color="transparent")
         self.btn_frame.pack()
@@ -88,3 +97,52 @@ class MenuUI(ctk.CTkFrame):
     def disable_buttons(self):
         for btn in self.buttons:
             btn.configure(state="disabled")
+
+    def update_last_played(self, last_session_dict):
+        if last_session_dict and "app" in last_session_dict:
+            app = last_session_dict["app"]
+            date = last_session_dict["date"]
+            self.last_played_label.configure(
+                text=f"Last played: {app} - {MenuUI.get_relative_time(date)}."
+            )
+        elif last_session_dict == "Refreshing signal":
+            self.last_played_label.configure(text="...")
+        else:
+            self.last_played_label.configure(text="No recent session found")
+
+    def get_relative_time(date_str):
+        if not date_str:
+            return "Never"
+        
+        past = datetime.fromisoformat(date_str)
+        
+        if past.tzinfo is not None:
+            now = datetime.now(timezone.utc)
+            past = past.astimezone(timezone.utc)
+        else:
+            now = datetime.now()
+
+        diff = now - past
+        seconds = diff.total_seconds()
+        
+        if seconds < 60:
+            return "Just now"
+        elif seconds < 3600:
+            minutes = int(seconds // 60)
+            return f"{minutes} minute{'s' if minutes > 1 else ''} ago"
+        elif seconds < 86400:
+            hours = int(seconds // 3600)
+            return f"{hours} hour{'s' if hours > 1 else ''} ago"
+        elif seconds < 604800:
+            days = int(seconds // 86400)
+            return f"{days} day{'s' if days > 1 else ''} ago"
+        elif seconds < 2629746: 
+            weeks = int(seconds // 604800)
+            return f"{weeks} week{'s' if weeks > 1 else ''} ago"
+        elif seconds < 31556952: 
+            months = int(seconds // 2629746)
+            return f"{months} month{'s' if months > 1 else ''} ago"
+        else: 
+            years = int(seconds // 31556952)
+            return f"{years} year{'s' if years > 1 else ''} ago"
+        

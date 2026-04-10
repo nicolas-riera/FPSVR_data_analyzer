@@ -62,6 +62,14 @@ class ProcessFiles:
                             else:
                                 self.game_time[app] = duration
 
+                            current_session_date_str = data["DateStart"] 
+
+                            if not self.last_session or current_session_date_str > self.last_session.get("date", ""):
+                                self.last_session = {
+                                    "app": app,
+                                    "date": current_session_date_str, 
+                                }
+
                             if "framesused" in data and "stime" in data and data["stime"] > 0:
                                 fps_session = data["framesused"] / data["stime"]
                                 if app in self.game_fps:
@@ -176,7 +184,8 @@ class ProcessFiles:
                         cache = json.load(f)
 
                     self.cache_version = cache.get("version", {})
-                    self.file_cache = cache.get("files", {})
+                    self.last_session = cache.get("last_session", {})
+                    self.file_cache = cache.get("files", {})  
                     self.hmd_usage = cache.get("hmd_usage", {})
                     self.game_time = cache.get("game_time", {})
                     self.game_fps = cache.get("game_fps", {})
@@ -196,6 +205,7 @@ class ProcessFiles:
             case "w":
                 cache = {
                     "version": self.version,
+                    "last_session": self.last_session,
                     "files": self.file_cache,
                     "hmd_usage": self.hmd_usage,
                     "game_time": self.game_time,
