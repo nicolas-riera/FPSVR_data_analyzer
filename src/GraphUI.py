@@ -234,25 +234,32 @@ class GraphUI(ctk.CTkFrame):
         draw_w = w - m_left - m_right
         max_v = max([x["nv"] for x in parsed]) if parsed and max([x["nv"] for x in parsed]) > 0 else 1
 
+        PODIUM_COLORS = {
+            0: "#FFD700",  
+            1: "#C0C0C0", 
+            2: "#CD7F32"  
+        }
+
+        LIGHT_BLUE = "#009FD4" 
+        
+        TEXT_WHITE = "#DCE4EE"
+
         for i, item in enumerate(parsed):
             y_mid = 30 + (i * line_height)
-            
-            if i % 2 != 0:
-                self.canvas.create_rectangle(0, y_mid - (line_height/2), w, y_mid + (line_height/2), 
-                                           fill="#323232", outline="")
-
             bar_w = (item["nv"] / max_v) * draw_w if max_v > 0 else 0
+            
+            bar_color = PODIUM_COLORS.get(i, LIGHT_BLUE)
             
             y0, y1 = y_mid - 10, y_mid + 10
             self.canvas.create_rectangle(m_left, y0, m_left + bar_w, y1, 
-                                       fill="#2a9d8f" if i == 0 else "#1f538d", outline="")
+                                       fill=bar_color, outline="")
             
             name_txt = item["l"] if len(item["l"]) < 25 else item["l"][:22] + "..."
-            self.canvas.create_text(m_left - 10, y_mid, text=name_txt, fill="#DCE4EE", 
+            self.canvas.create_text(m_left - 10, y_mid, text=name_txt, fill=TEXT_WHITE, 
                                    anchor="e", font=("Roboto", 10))
             
             val_x = m_left + bar_w + 8
             if val_x > w - 10: val_x = w - 10
             
-            self.canvas.create_text(val_x, y_mid, text=item["rv"], fill="#2a9d8f", 
+            self.canvas.create_text(val_x, y_mid, text=item["rv"], fill=bar_color, 
                                    anchor="w", font=("Roboto", 10, "bold"))
