@@ -194,9 +194,25 @@ class GraphUI(ctk.CTkFrame):
             self.canvas.grid(row=0, column=0, sticky="nsew", padx=(2,0), pady=2)
             self.scrollbar.grid(row=0, column=1, sticky="ns", padx=(0,2), pady=2)
 
-            self.canvas.bind_all("<MouseWheel>", lambda e: self.canvas.yview_scroll(int(-1*(e.delta/120)), "units"))
+            self.canvas.bind("<MouseWheel>", self._on_mousewheel)
+            self.canvas_container.bind("<MouseWheel>", self._on_mousewheel)
         
         self.after(100, self.draw_logic)
+
+    def _on_mousewheel(self, event):
+        try:
+            if not self.canvas.winfo_exists():
+                return
+                
+            sr = self.canvas.cget("scrollregion")
+            if sr:
+                _, _, _, total_h = map(int, sr.split())
+                if total_h <= self.canvas.winfo_height():
+                    return
+            
+            self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+        except Exception:
+            pass 
 
     def draw_logic(self):
         self.update()
@@ -226,7 +242,7 @@ class GraphUI(ctk.CTkFrame):
         parsed.sort(key=lambda x: x["nv"], reverse=True)
 
         line_height = 45 
-        total_h = len(parsed) * line_height + 40
+        total_h = max(len(parsed) * line_height + 40, self.canvas.winfo_height())
         self.canvas.delete("all")
         self.canvas.configure(scrollregion=(0, 0, w, total_h))
 
