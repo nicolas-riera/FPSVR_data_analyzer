@@ -42,7 +42,11 @@ class ProcessFiles:
                 file_hash = self.get_file_hash(path)
                 if path in self.file_cache and self.file_cache[path] == file_hash:
                     self.progress_file_count += 1
-                    if self.progress_callback and self.progress_file_count % (self.total_files // 10) == 0:
+                    if self.total_files >= 10 :
+                        if self.progress_callback and self.progress_file_count % (self.total_files // 10) == 0:
+                            progress = self.progress_file_count / self.total_files
+                            self.progress_callback(progress, self.progress_file_count, self.total_files)
+                    else:
                         progress = self.progress_file_count / self.total_files
                         self.progress_callback(progress, self.progress_file_count, self.total_files)
                     continue
@@ -166,7 +170,10 @@ class ProcessFiles:
                 time.sleep(0.0001) # so CPU can be free for CTK
 
         if self.progress_callback:
-            progress = self.progress_file_count / self.total_files
+            if self.total_files != 0 :
+                progress = self.progress_file_count / self.total_files      
+            else :
+                progress = 0
             self.progress_callback(progress, self.progress_file_count, self.total_files)
 
         self.cache_manager("w") 
