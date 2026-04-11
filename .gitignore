@@ -208,4 +208,5 @@ __marimo__/
 
 # Other
 cache
-pyinstaller_command
+build_all.cmd
+*.msi
