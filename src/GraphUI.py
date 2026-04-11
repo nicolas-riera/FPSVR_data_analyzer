@@ -106,7 +106,7 @@ class GraphUI(ctk.CTkFrame):
             self.bottom_frame, 
             text="Show Graph", 
             command=self.toggle_graph_view, 
-            width=100
+            width=120
         )
         self.graph_btn.pack(side="right", padx=10)
 
