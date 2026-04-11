@@ -3,6 +3,15 @@ import threading
 import os
 from collections import Counter
 import statistics
+import requests
+import webbrowser
+from tkinter import messagebox
+import platform
+
+if platform.system() == "Windows":
+    import winsound
+else:
+    winsound = None
 
 
 from src.scan_data import ProcessFiles
@@ -25,6 +34,8 @@ class App(ctk.CTk):
         self.container.pack(fill="both", expand=True)
         
         self.file_loading_progress_bar()
+
+        self.check_updates_async()
 
         self.after(300, self.start_thread)
 
@@ -344,3 +355,44 @@ class App(ctk.CTk):
             "player_profile": profile_str,
             "endurance": endurance_str
         }
+    
+    def check_updates_async(self):
+        t = threading.Thread(target=self._fetch_github_version, daemon=True)
+        t.start()
+
+    def _fetch_github_version(self):
+
+        url = f"https://api.github.com/repos/nicolas-riera/FPSVR_data_analyzer/releases/latest"
+
+        try:
+            response = requests.get(url, timeout=5)
+            if response.status_code == 200:
+                data = response.json()
+                latest_tag = data['tag_name']
+                
+                remote_v = latest_tag.lstrip('v')
+                local_v = str(self.version).lstrip('v')
+
+                if remote_v > local_v:
+                    new_text = f"v{self.version} (Update v{latest_tag} available!)"
+                    self.after(0, lambda: self.version_label.configure(text=new_text, text_color="#FFCC00"))
+                    self.after(0, lambda: self.show_update_popup(latest_tag, data['html_url']))
+                elif remote_v < local_v: # debug only
+                    print(f"Remote version : {remote_v}")
+                    print(f"Local version : {local_v}")
+        except Exception as e:
+            print(f"Update check failed: {e}") # debug only
+
+    def show_update_popup(self, new_version, url):
+
+        if winsound:
+            try:
+                winsound.PlaySound("SystemAsterisk", winsound.SND_ALIAS | winsound.SND_ASYNC)
+            except Exception:
+                pass
+
+        title = "Update Available"
+        message = f"A new version ({new_version}) is available!\n\nWould you like to open the download page?"
+        
+        if messagebox.askyesno(title, message):
+            webbrowser.open(url)
