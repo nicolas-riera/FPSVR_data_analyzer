@@ -280,7 +280,7 @@ class ProcessFiles:
                 "duration": duration,
                 "first_seen": current_date,
                 "last_seen": current_date,
-                "resolutions": {res_key: 1} if res_key else {} # On initialise le compteur
+                "resolutions": {res_key: 1} if res_key else {} 
             }
         else:
             entry = self.hmd_usage[hmd]
