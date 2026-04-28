@@ -1,5 +1,9 @@
 import customtkinter as ctk
-
+from tkinter import filedialog, messagebox
+import datetime
+import csv
+import json
+import os
 
 class LineGraphUI(ctk.CTkFrame):
     def __init__(self, master, x_label, y_label, data_points, title, on_back):
@@ -42,13 +46,26 @@ class LineGraphUI(ctk.CTkFrame):
 
         self.canvas.pack(fill="both", expand=True, padx=5, pady=5)
 
+        self.button_container = ctk.CTkFrame(self, fg_color="transparent")
+        self.button_container.pack(pady=20)
+
         self.back_button = ctk.CTkButton(
-            self,
+            self.button_container,
             text="Back",
             command=self.on_back,
             width=120
         )
-        self.back_button.pack(pady=15)
+        self.back_button.pack(side="left", padx=10)
+
+        self.export_button = ctk.CTkButton(
+            self.button_container, 
+            text="Export Data", 
+            command=self.export_data, 
+            width=120,
+            fg_color="#2a9d8f",
+            hover_color="#21867a"
+        )
+        self.export_button.pack(side="left", padx=10)
 
         self.draw_graph()
 
@@ -207,3 +224,43 @@ class LineGraphUI(ctk.CTkFrame):
                     font=("Arial", 10, "bold"),
                     anchor=anchor
                 )
+
+    def export_data(self):
+        if not self.data_points:
+            return
+
+        clean_label = "".join([c for c in self.title if c.isalnum() or c in (' ', '_', '-')]).strip().replace(" ", "_")
+        now = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        default_filename = f"Export_{clean_label}_{now}"
+
+        file_path = filedialog.asksaveasfilename(
+            initialfile=default_filename,
+            defaultextension=".csv",
+            filetypes=[("CSV File", "*.csv"), ("JSON File", "*.json")],
+            title="Export Graph Data"
+        )
+
+        if not file_path:
+            return
+
+        try:
+            headers = [self.x_label, self.y_label, "Details"]
+            
+            if file_path.endswith(".json"):
+                export_list = [
+                    {self.x_label: p[0], self.y_label: p[1], "Details": p[2]} 
+                    for p in self.data_points
+                ]
+                with open(file_path, "w", encoding="utf-8") as f:
+                    json.dump(export_list, f, indent=4, ensure_ascii=False)
+            
+            else:
+                with open(file_path, "w", newline="", encoding="utf-8-sig") as f:
+                    writer = csv.writer(f, delimiter=";")
+                    writer.writerow(headers)
+                    writer.writerows(self.data_points)
+
+            messagebox.showinfo("Export Successful", f"File saved:\n{os.path.basename(file_path)}")
+        
+        except Exception as e:
+            messagebox.showerror("Export Error", f"An error occurred: {e}")
