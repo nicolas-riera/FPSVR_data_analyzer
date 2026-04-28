@@ -76,10 +76,22 @@ class ProcessFiles:
                                 }
 
                             app = data["app"]
-                            if app in self.game_time:
-                                self.game_time[app] += duration
+                            current_date = start.strftime("%Y-%m-%d")
+
+                            if app not in self.game_time:
+                                self.game_time[app] = {
+                                    "duration": duration,
+                                    "history": {current_date: duration}
+                                }
                             else:
-                                self.game_time[app] = duration
+                                if isinstance(self.game_time[app], (int, float)):
+                                    self.game_time[app] = {
+                                        "duration": self.game_time[app] + duration,
+                                        "history": {current_date: duration}
+                                    }
+                                else:
+                                    self.game_time[app]["duration"] += duration
+                                    self.game_time[app]["history"][current_date] = self.game_time[app]["history"].get(current_date, 0) + duration
 
                             current_session_date_str = data["DateStart"] 
 

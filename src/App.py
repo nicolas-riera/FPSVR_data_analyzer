@@ -153,9 +153,11 @@ class App(ctk.CTk):
                 headers = ["Game", "Playtime", "Average FPS"]
                 data = []
 
-                for app, t in self.data.game_time.items():
-                    avg_fps = self.data.game_fps[app]["total_fps"] / self.data.game_fps[app]["total_time"] if app in self.data.game_fps else 0
-                    data.append([app, App.format_duration(t), f"{avg_fps:.2f}"])
+                for app, stats in self.data.game_time.items():
+                    if isinstance(stats, dict):
+                        duration = stats["duration"]
+                        avg_fps = self.data.game_fps[app]["total_fps"] / self.data.game_fps[app]["total_time"] if app in self.data.game_fps else 0
+                        data.append([app, App.format_duration(duration), f"{avg_fps:.2f}"])
 
             case 3:
                 self.graphlabel = "CPU / GPU Usage & Temps"
@@ -242,6 +244,36 @@ class App(ctk.CTk):
                     for day, info in stats_map.items()
                 ]
 
+            case -2:
+                self.graphlabel = "Game Playtime - Last 7 Days"
+                self.x_label = "Date"
+                self.y_label = "Hours"
+
+                now_dt = datetime.now().date()
+
+                stats_map = {
+                    now_dt - timedelta(days=i): {"hours": 0, "games": set()}
+                    for i in range(6, -1, -1)
+                }
+
+                for game_name, game_stats in self.data.game_time.items():
+                    if isinstance(game_stats, dict):
+                        history = game_stats.get("history", {})
+                        for date_str, duration in history.items():
+                            log_date = datetime.fromisoformat(date_str).date()
+                            if log_date in stats_map:
+                                stats_map[log_date]["hours"] += duration / 3600
+                                stats_map[log_date]["games"].add(game_name)
+
+                graph_data = [
+                    (
+                        day.strftime("%d/%m"),
+                        round(info["hours"], 2),
+                        ", ".join(list(info["games"])[:3]) + ("..." if len(info["games"]) > 3 else "")
+                    )
+                    for day, info in stats_map.items()
+                ]
+
         
             #debug only
             case _:
@@ -304,7 +336,7 @@ class App(ctk.CTk):
     
     def calculate_highlights(self):
         total_sessions = len(self.data.file_cache)
-        total_sec = sum(self.data.game_time.values())
+        total_sec = sum(game["duration"] for game in self.data.game_time.values() if isinstance(game, dict))
         formatted_time = App.format_duration(total_sec)
         sessions_time_display = f"{total_sessions} sessions\n{formatted_time}"
         sessions_time_display = App.truncate_text(sessions_time_display, 50)
@@ -318,7 +350,7 @@ class App(ctk.CTk):
             top_hmd = "N/A"
 
         if self.data.game_time:
-            full_name = max(self.data.game_time.items(), key=lambda x: x[1])[0]
+            full_name = max(self.data.game_time.items(), key=lambda x: x[1]['duration'] if isinstance(x[1], dict) else 0)[0]
             top_game = App.truncate_text(full_name, 45)
             
             fps_info = self.data.game_fps.get(full_name, {"total_fps": 0, "total_time": 1})
