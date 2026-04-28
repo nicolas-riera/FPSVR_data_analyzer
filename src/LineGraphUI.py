@@ -143,10 +143,10 @@ class LineGraphUI(ctk.CTkFrame):
 
         coords = []
 
-        for i, (date, hours, hmd) in enumerate(self.data_points):
+        for i, (label_x, value_y, detail) in enumerate(self.data_points):
             x = left_margin + i * spacing
-            y = top_margin + graph_height - (hours / max_y) * graph_height
-            coords.append((x, y, date, hours, hmd))
+            y = top_margin + graph_height - (value_y / max_y) * graph_height
+            coords.append((x, y, label_x, value_y, detail))
 
         for i in range(len(coords) - 1):
             x1, y1, _, _, _ = coords[i]
@@ -161,7 +161,7 @@ class LineGraphUI(ctk.CTkFrame):
                 width=2
             )
 
-        for x, y, date, hours, hmd in coords:
+        for x, y, label_x, value_y, detail in coords:
             self.canvas.create_oval(
                 x - 3,
                 y - 3,
@@ -174,12 +174,12 @@ class LineGraphUI(ctk.CTkFrame):
             self.canvas.create_text(
                 x,
                 top_margin + graph_height + 20,
-                text=date,
+                text=label_x,
                 fill="white",
                 font=("Arial", 10)
             )
 
-            if hours > 0:
+            if value_y > 0:
                 if x > width - 120:
                     text_x = x - 15
                     anchor = "se"
@@ -190,16 +190,19 @@ class LineGraphUI(ctk.CTkFrame):
                 self.canvas.create_text(
                     text_x,
                     y - 20,
-                    text=hmd,
+                    text=detail,
                     fill="#00BFFF",
                     font=("Arial", 9, "italic"),
                     anchor=anchor
                 )
 
+                unit = "h" if "Hours" in self.y_label else "°C" if "°C" in self.y_label else ""
+                val_text = f"{value_y:.2f}{unit}" if unit else f"{value_y:.1f}"
+
                 self.canvas.create_text(
                     text_x,
                     y - 5,
-                    text=f"{hours:.2f}h",
+                    text=val_text,
                     fill="white",
                     font=("Arial", 10, "bold"),
                     anchor=anchor

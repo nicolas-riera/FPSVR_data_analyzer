@@ -273,6 +273,79 @@ class App(ctk.CTk):
                     )
                     for day, info in stats_map.items()
                 ]
+
+            case -3:
+                self.graphlabel = "Avg Session Length - Last 7 Months"
+                self.x_label = "Month"
+                self.y_label = "Hours" 
+
+                now = datetime.now()
+                months = []
+                for i in range(6, -1, -1):
+                    total_m = (now.year * 12 + (now.month - 1)) - i
+                    year, m_idx = divmod(total_m, 12)
+                    months.append(f"{year}-{m_idx + 1:02d}")
+
+                graph_data = []
+                for m_str in months:
+                    sessions = self.data.monthly_sessions.get(m_str, [])
+                    if sessions:
+                        avg_hours = (sum(sessions) / len(sessions)) / 3600
+                        graph_data.append((
+                            m_str, 
+                            round(avg_hours, 2), 
+                            ""
+                        ))
+                    else:
+                        graph_data.append((m_str, 0, "No data"))
+
+            case -4:
+                self.graphlabel = "Recent CPU Temperatures - Last 7 Days"
+                self.x_label = "Date"
+                self.y_label = "°C"
+
+                now_dt = datetime.now().date()
+                stats_map = {now_dt - timedelta(days=i): [] for i in range(6, -1, -1)}
+
+                for name, info in self.data.hardware_usage.items():
+                    if info.get("type") == "CPU":
+                        for date_str, temps in info.get("history", {}).items():
+                            log_date = datetime.fromisoformat(date_str).date()
+                            if log_date in stats_map:
+                                stats_map[log_date].extend(temps)
+
+                graph_data = [
+                    (
+                        day.strftime("%m/%d"),
+                        round(sum(v)/len(v), 1) if v else 0,
+                        ""
+                    )
+                    for day, v in stats_map.items()
+                ]
+
+            case -5: 
+                self.graphlabel = "Recent GPU Temperatures - Last 7 Days"
+                self.x_label = "Date"
+                self.y_label = "°C"
+
+                now_dt = datetime.now().date()
+                stats_map = {now_dt - timedelta(days=i): [] for i in range(6, -1, -1)}
+
+                for name, info in self.data.hardware_usage.items():
+                    if info.get("type") == "GPU":
+                        for date_str, temps in info.get("history", {}).items():
+                            log_date = datetime.fromisoformat(date_str).date()
+                            if log_date in stats_map:
+                                stats_map[log_date].extend(temps)
+
+                graph_data = [
+                    (
+                        day.strftime("%m/%d"),
+                        round(sum(v)/len(v), 1) if v else 0,
+                        ""
+                    )
+                    for day, v in stats_map.items()
+                ]
         
             #debug only
             case _:

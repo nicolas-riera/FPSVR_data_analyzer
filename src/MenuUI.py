@@ -93,7 +93,9 @@ class MenuUI(ctk.CTkFrame):
         recent_activity_items = [
             ("Recent VR Headset Usage", -1),
             ("Recent Game Sessions", -2),
-            ("idk", -3)
+            ("Recent Avg Session Length", -3),
+            ("Recent CPU Temps", -4),
+            ("Recent GPU Temps", -5)
         ]
 
         for i, (text, value) in enumerate(global_items):

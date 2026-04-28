@@ -58,11 +58,17 @@ class ProcessFiles:
                         if isinstance(data, dict) and "hmd" in data and "DateStart" in data and "DateEnd" in data and "app" in data:
                             start = datetime.fromisoformat(data["DateStart"])
                             end = datetime.fromisoformat(data["DateEnd"])
+                            session_date = start.strftime("%Y-%m-%d")
+                            session_month = start.strftime("%Y-%m")
 
                             bx = data.get("baseX", 0)
                             by = data.get("baseY", 0)
 
                             duration = self.processhmd(data["hmd"], start, end, bx, by)
+
+                            if session_month not in self.monthly_sessions:
+                                self.monthly_sessions[session_month] = []
+                            self.monthly_sessions[session_month].append(duration)
 
                             self.all_session_durations.append(duration)
                             self.session_hours.append(start.hour)
@@ -112,20 +118,34 @@ class ProcessFiles:
                             if "cpu" in data:
                                 cpu_name = data["cpu"].strip()
                                 if cpu_name not in self.hardware_usage:
-                                    self.hardware_usage[cpu_name] = {"type": "CPU", "time": 0, "temps": []}
+                                    self.hardware_usage[cpu_name] = {"type": "CPU", "time": 0, "temps": [], "history": {}}
+                                
                                 self.hardware_usage[cpu_name]["time"] += duration
+                                
+                                if session_date not in self.hardware_usage[cpu_name]["history"]:
+                                    self.hardware_usage[cpu_name]["history"][session_date] = []
+
                                 for key in ["CPU_Tavg", "CPU_Tmax"]:
                                     if key in data and data[key] <= 120:
-                                        self.hardware_usage[cpu_name]["temps"].append(data[key])
+                                        val = data[key]
+                                        self.hardware_usage[cpu_name]["temps"].append(val)
+                                        self.hardware_usage[cpu_name]["history"][session_date].append(val)
 
                             if "gpuSpeedVendor" in data:
                                 gpu_name = data["gpuSpeedVendor"].strip()
                                 if gpu_name not in self.hardware_usage:
-                                    self.hardware_usage[gpu_name] = {"type": "GPU", "time": 0, "temps": []}
+                                    self.hardware_usage[gpu_name] = {"type": "GPU", "time": 0, "temps": [], "history": {}}
+                                
                                 self.hardware_usage[gpu_name]["time"] += duration
+                                
+                                if session_date not in self.hardware_usage[gpu_name]["history"]:
+                                    self.hardware_usage[gpu_name]["history"][session_date] = []
+
                                 for key in ["GPU_Tavg", "GPU_Tmax"]:
                                     if key in data and data[key] <= 120:
-                                        self.hardware_usage[gpu_name]["temps"].append(data[key])
+                                        val = data[key]
+                                        self.hardware_usage[gpu_name]["temps"].append(val)
+                                        self.hardware_usage[gpu_name]["history"][session_date].append(val)
 
                             if "SteamVR" in data:
                                 version = str(data["SteamVR"])
@@ -220,6 +240,7 @@ class ProcessFiles:
                     self.cache_version = cache.get("version", {})
                     self.file_cache = cache.get("files", {}) 
                     self.all_session_durations = cache.get("all_session_durations", [])
+                    self.monthly_sessions = cache.get("monthly_sessions", {}) 
                     self.session_hours = cache.get("session_hours", [])
                     self.session_days = cache.get("session_days", [])
                     self.last_session = cache.get("last_session", {})
@@ -246,6 +267,7 @@ class ProcessFiles:
                     "files": self.file_cache,
                     "last_session": self.last_session,
                     "all_session_durations": self.all_session_durations,
+                    "monthly_sessions": self.monthly_sessions,
                     "session_hours": self.session_hours,
                     "session_days": self.session_days,
                     "hmd_usage": self.hmd_usage,
