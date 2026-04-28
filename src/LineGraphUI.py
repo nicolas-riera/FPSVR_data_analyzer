@@ -24,14 +24,23 @@ class LineGraphUI(ctk.CTkFrame):
         self.canvas_width = 760
         self.canvas_height = 600
 
-        self.canvas = ctk.CTkCanvas(
+        self.canvas_border = ctk.CTkFrame(
             self,
+            corner_radius=10,
+            fg_color="#2b2b2b"
+        )
+        self.canvas_border.pack(padx=20, pady=10)
+
+        self.canvas = ctk.CTkCanvas(
+            self.canvas_border,
             width=self.canvas_width,
             height=self.canvas_height,
             bg="#2b2b2b",
-            highlightthickness=0
+            highlightthickness=0,
+            bd=0
         )
-        self.canvas.pack(padx=20, pady=10)
+
+        self.canvas.pack(fill="both", expand=True, padx=5, pady=5)
 
         self.back_button = ctk.CTkButton(
             self,

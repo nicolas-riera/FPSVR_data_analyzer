@@ -237,7 +237,7 @@ class App(ctk.CTk):
 
                 graph_data = [
                     (
-                        day.strftime("%d/%m"),
+                        day.strftime("%m-%d"),
                         round(info["hours"], 2),
                         ", ".join(info["hmds"])
                     )
@@ -267,13 +267,12 @@ class App(ctk.CTk):
 
                 graph_data = [
                     (
-                        day.strftime("%d/%m"),
+                        day.strftime("%m-%d"),
                         round(info["hours"], 2),
                         ", ".join(list(info["games"])[:3]) + ("..." if len(info["games"]) > 3 else "")
                     )
                     for day, info in stats_map.items()
                 ]
-
         
             #debug only
             case _:
