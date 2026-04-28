@@ -70,10 +70,17 @@ class MenuUI(ctk.CTkFrame):
         for c in range(3):
             self.highlights_frame.grid_columnconfigure(c, weight=1)
 
-        self.btn_frame = ctk.CTkFrame(self.container, fg_color="transparent")
-        self.btn_frame.pack(pady=10)
+        self.tabview = ctk.CTkTabview(self.container, width=800, corner_radius=12)
+        self.tabview.pack(pady=10, padx=20, fill="both", expand=True)
 
-        menu_items = [
+        self.tabview.add("Recent Activity")
+        self.tabview.add("Global")
+        self.tabview.set("Global")
+
+        self.tabview.tab("Recent Activity").grid_columnconfigure((0, 1, 2), weight=1)
+        self.tabview.tab("Global").grid_columnconfigure((0, 1, 2), weight=1)
+
+        global_items = [
             ("VR Headset Usage", 1),
             ("Game Playtime & Avg FPS", 2),
             ("CPU / GPU Usage & Temps", 3),
@@ -83,12 +90,35 @@ class MenuUI(ctk.CTkFrame):
             ("Refresh Rate Usage", 7)
         ]
 
-        for i, (text, value) in enumerate(menu_items):
-            row = i // 3  
+        recent_activity_items = [
+            ("Recent VR Headset Usage", -1),
+            ("Recent Game Sessions", -2),
+            ("idk", -3)
+        ]
+
+        for i, (text, value) in enumerate(global_items):
+            row = i // 3 
             col = i % 3
             
             btn = ctk.CTkButton(
-                self.btn_frame,
+                self.tabview.tab("Global"),
+                text=text,
+                width=240,       
+                height=42,
+                corner_radius=12,
+                font=ctk.CTkFont(size=14),
+                command=lambda v=value: self.on_select(v), 
+                state="disabled"
+            )
+            btn.grid(row=row, column=col, padx=8, pady=6)
+            self.buttons.append(btn)
+
+        for i, (text, value) in enumerate(recent_activity_items):
+            row = i // 3 
+            col = i % 3
+            
+            btn = ctk.CTkButton(
+                self.tabview.tab("Recent Activity"),
                 text=text,
                 width=240,       
                 height=42,

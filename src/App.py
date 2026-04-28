@@ -6,6 +6,7 @@ import statistics
 import requests
 import webbrowser
 from tkinter import messagebox
+from datetime import datetime, timedelta
 import platform
 
 if platform.system() == "Windows":
@@ -16,6 +17,7 @@ else:
 from src.scan_data import ProcessFiles
 from src.MenuUI import MenuUI
 from src.GraphUI import GraphUI
+from src.LineGraphUI import LineGraphUI
 from src.ressource_path import resource_path
 
 class App(ctk.CTk):
@@ -121,6 +123,7 @@ class App(ctk.CTk):
         self.version_label.place_forget()
         
         match value:
+            # Global data
             case 1:
                 self.graphlabel = "VR Headset Usage"
                 headers = ["VR Headset", "Resolution", "Usage Period", "Total Usage"]
@@ -206,7 +209,41 @@ class App(ctk.CTk):
                 self.graphlabel = "Refresh Rate Usage"
                 headers = ["Refresh Rate (Hz)", "Total Usage"]
                 data = [[k, App.format_duration(v)] for k, v in self.data.hz_usage.items()]
+
+            # Recent data
+            case -1:
+                self.graphlabel = "VR Headset Usage - Last 7 Days"
+                self.x_label = "Date"
+                self.y_label = "Hours"
+
+                now_dt = datetime.now().date()
+
+                stats_map = {
+                    now_dt - timedelta(days=i): {"hours": 0, "hmds": set()}
+                    for i in range(6, -1, -1)
+                }
+
+                for hmd_name, hmd_stats in self.data.hmd_usage.items():
+                    history = hmd_stats.get("history", {})
+
+                    for date_str, duration in history.items():
+                        log_date = datetime.fromisoformat(date_str).date()
+
+                        if log_date in stats_map:
+                            stats_map[log_date]["hours"] += duration / 3600
+                            stats_map[log_date]["hmds"].add(hmd_name)
+
+                graph_data = [
+                    (
+                        day.strftime("%d/%m"),
+                        round(info["hours"], 2),
+                        ", ".join(info["hmds"])
+                    )
+                    for day, info in stats_map.items()
+                ]
+
         
+            #debug only
             case _:
                 self.graphlabel = "???"
                 print("Menu Programming error") #debug only
@@ -214,13 +251,24 @@ class App(ctk.CTk):
                 return
 
         self.title(f"FPSVR Data Analyzer - {self.graphlabel}")
-        self.graph_view = GraphUI(
-            master=self.container, 
-            headers=headers, 
-            data=data, 
-            on_back=self.show_menu,
-            label=self.graphlabel
-        )
+
+        if value > 0:
+            self.graph_view = GraphUI(
+                master=self.container, 
+                headers=headers, 
+                data=data, 
+                on_back=self.show_menu,
+                label=self.graphlabel
+            )
+        elif value < 0:
+            self.graph_view = LineGraphUI(
+                master=self.container,
+                x_label=self.x_label,
+                y_label=self.y_label,
+                data_points=graph_data,
+                title=self.graphlabel,
+                on_back=self.show_menu
+            )
         self.graph_view.pack(fill="both", expand=True)
 
     def show_menu(self):

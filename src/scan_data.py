@@ -280,7 +280,8 @@ class ProcessFiles:
                 "duration": duration,
                 "first_seen": current_date,
                 "last_seen": current_date,
-                "resolutions": {res_key: 1} if res_key else {} 
+                "resolutions": {res_key: 1} if res_key else {}, 
+                "history": {current_date: duration}
             }
         else:
             entry = self.hmd_usage[hmd]
@@ -293,12 +294,20 @@ class ProcessFiles:
                     if "resolutions" not in entry:
                         entry["resolutions"] = {}
                     entry["resolutions"][res_key] = entry["resolutions"].get(res_key, 0) + 1
+
+                if "history" not in entry:
+                    entry["history"] = {}
+
+                entry["history"][current_date] = (
+                    entry["history"].get(current_date, 0) + duration
+                )
             else:
                 self.hmd_usage[hmd] = {
                     "duration": entry + duration,
                     "first_seen": current_date,
                     "last_seen": current_date,
-                    "resolutions": {res_key: 1} if res_key else {}
+                    "resolutions": {res_key: 1} if res_key else {},
+                    "history": {current_date: duration}
                 }
                 
         return duration
