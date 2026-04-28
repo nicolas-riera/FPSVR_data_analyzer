@@ -28,6 +28,7 @@ This utility displays:
 - Usage time per VR Headset, SteamVR Version, Tracking System, OS and Refresh Rate
 - Game Playtime and Average FPS
 - CPU/GPU Usage and Temperatures
+- Recent Sessions Data
 
 ## Usage
 
