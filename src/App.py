@@ -13,7 +13,6 @@ if platform.system() == "Windows":
 else:
     winsound = None
 
-
 from src.scan_data import ProcessFiles
 from src.MenuUI import MenuUI
 from src.GraphUI import GraphUI
@@ -27,6 +26,7 @@ class App(ctk.CTk):
         self.geometry("800x800")
         ctk.set_appearance_mode("dark")
         self.after(201, lambda :self.iconbitmap(resource_path(os.path.join("img", "logo.ico"))))
+        self.resizable(False, False)
 
         self.version = version
 
