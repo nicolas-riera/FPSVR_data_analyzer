@@ -36,7 +36,7 @@ class MenuUI(ctk.CTkFrame):
         self.last_played_label.pack(pady=(0, 0))
 
         self.highlights_frame = ctk.CTkFrame(self.container, fg_color="transparent")
-        self.highlights_frame.pack(pady=10, fill="x")
+        self.highlights_frame.pack(pady=10, padx=15, fill="x")
 
         self.stat_blocks = []
         for i in range(6):
