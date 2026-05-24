@@ -153,7 +153,13 @@ class App(ctk.CTk):
                 headers = ["Game", "Playtime", "Average FPS"]
                 data = []
 
-                for app, stats in self.data.game_time.items():
+                sorted_games = sorted(
+                    self.data.game_time.items(),
+                    key=lambda item: item[1]["duration"] if isinstance(item[1], dict) else 0,
+                    reverse=True
+                )
+
+                for app, stats in sorted_games:
                     if isinstance(stats, dict):
                         duration = stats["duration"]
                         avg_fps = self.data.game_fps[app]["total_fps"] / self.data.game_fps[app]["total_time"] if app in self.data.game_fps else 0
