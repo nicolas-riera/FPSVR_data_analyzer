@@ -15,6 +15,7 @@ else:
     winsound = None
 
 from src.scan_data import ProcessFiles
+from src.get_folder_path import HISTORY_DIR
 from src.MenuUI import MenuUI
 from src.GraphUI import GraphUI
 from src.LineGraphUI import LineGraphUI
@@ -118,9 +119,6 @@ class App(ctk.CTk):
         
     # Main Menu
     def handle_selection(self, value):
-
-        self.menu.pack_forget()
-        self.version_label.place_forget()
         
         match value:
             # Global data
@@ -352,6 +350,16 @@ class App(ctk.CTk):
                     )
                     for day, v in stats_map.items()
                 ]
+
+            # FPS History Viewer shortcut
+            case 0:
+                try:
+                    os.startfile(os.path.join(HISTORY_DIR, "../", "fpsVR History Viewer.lnk"))
+                    lnk_error = False
+                except FileNotFoundError as e:
+                    self.menu.shortcut_btn.configure(state="disabled", text="Shortcut Not Found...")
+                    print(e)
+                    lnk_error = True
         
             #debug only
             case _:
@@ -360,26 +368,37 @@ class App(ctk.CTk):
                 self.menu.pack(fill="both", expand=True, anchor="n")
                 return
 
-        self.title(f"FPSVR Data Analyzer - {self.graphlabel}")
+        if value != 0:
 
-        if value > 0:
-            self.graph_view = GraphUI(
-                master=self.container, 
-                headers=headers, 
-                data=data, 
-                on_back=self.show_menu,
-                label=self.graphlabel
-            )
-        elif value < 0:
-            self.graph_view = LineGraphUI(
-                master=self.container,
-                x_label=self.x_label,
-                y_label=self.y_label,
-                data_points=graph_data,
-                title=self.graphlabel,
-                on_back=self.show_menu
-            )
-        self.graph_view.pack(fill="both", expand=True)
+            self.menu.pack_forget()
+            self.version_label.place_forget()
+
+            self.title(f"FPSVR Data Analyzer - {self.graphlabel}")
+
+            if value > 0:
+                self.graph_view = GraphUI(
+                    master=self.container, 
+                    headers=headers, 
+                    data=data, 
+                    on_back=self.show_menu,
+                    label=self.graphlabel
+                )
+            elif value < 0:
+                self.graph_view = LineGraphUI(
+                    master=self.container,
+                    x_label=self.x_label,
+                    y_label=self.y_label,
+                    data_points=graph_data,
+                    title=self.graphlabel,
+                    on_back=self.show_menu
+                )
+            self.graph_view.pack(fill="both", expand=True)
+
+        elif not lnk_error:
+            self.menu.shortcut_btn.configure(state="disabled", text="Please Wait...")
+            def reset_button():
+                self.menu.shortcut_btn.configure(state="normal", text="Open FPSVR History Viewer ⧉")
+            self.after(5000, reset_button)
 
     def show_menu(self):
         self.title("FPSVR Data Analyzer")
