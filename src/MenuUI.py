@@ -75,10 +75,13 @@ class MenuUI(ctk.CTkFrame):
 
         self.tabview.add("Recent Activity")
         self.tabview.add("Global")
+        self.tabview.add("Per-session data")
         self.tabview.set("Global")
 
         self.tabview.tab("Recent Activity").grid_columnconfigure((0, 1, 2), weight=1)
         self.tabview.tab("Global").grid_columnconfigure((0, 1, 2), weight=1)
+        self.tabview.tab("Per-session data").grid_columnconfigure((0), weight=1)
+        self.tabview.tab("Per-session data").grid_rowconfigure((0, 1, 2, 3), weight=1)
 
         global_items = [
             ("VR Headset Usage", 1),
@@ -131,6 +134,17 @@ class MenuUI(ctk.CTkFrame):
             )
             btn.grid(row=row, column=col, padx=8, pady=6)
             self.buttons.append(btn)
+
+        self.shortcut_btn = ctk.CTkButton(
+                self.tabview.tab("Per-session data"),
+                text="Open FPSVR History Viewer ⧉",
+                width=240,       
+                height=42,
+                corner_radius=12,
+                font=ctk.CTkFont(size=14),
+                command=lambda: self.on_select(0)
+            )
+        self.shortcut_btn.grid(row=1, column=0, padx=8, pady=6)
 
         self.action_frame = ctk.CTkFrame(self.container, fg_color="transparent")
         self.action_frame.pack(pady=(25, 10))
