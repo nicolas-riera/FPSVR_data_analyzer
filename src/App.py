@@ -168,8 +168,10 @@ class App(ctk.CTk):
                 headers = ["Hardware", "Type", "Usage Time", "Avg Temp", "Max Temp"]
                 data = []
                 for name, info in self.data.hardware_usage.items():
-                    avg_temp = f"{sum(info['temps'])/len(info['temps']):.2f}" if info['temps'] else "N/A"
-                    max_temp = f"{max(info['temps']):.2f}" if info['temps'] else "N/A"
+                    valid_temps = [t for t in info.get('temps', []) if t != 0]
+                    
+                    avg_temp = f"{sum(valid_temps)/len(valid_temps):.2f}" if valid_temps else "N/A"
+                    max_temp = f"{max(valid_temps):.2f}" if valid_temps else "N/A"
                     usage_time = App.format_duration(info["time"])
                     data.append([name, info["type"], usage_time, avg_temp, max_temp])
 
@@ -316,7 +318,7 @@ class App(ctk.CTk):
                         for date_str, temps in info.get("history", {}).items():
                             log_date = datetime.fromisoformat(date_str).date()
                             if log_date in stats_map:
-                                stats_map[log_date].extend(temps)
+                                stats_map[log_date].extend([t for t in temps if t != 0])
 
                 graph_data = [
                     (
@@ -340,7 +342,7 @@ class App(ctk.CTk):
                         for date_str, temps in info.get("history", {}).items():
                             log_date = datetime.fromisoformat(date_str).date()
                             if log_date in stats_map:
-                                stats_map[log_date].extend(temps)
+                                stats_map[log_date].extend([t for t in temps if t != 0])
 
                 graph_data = [
                     (
