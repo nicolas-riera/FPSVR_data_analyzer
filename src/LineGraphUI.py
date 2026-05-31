@@ -213,8 +213,16 @@ class LineGraphUI(ctk.CTkFrame):
                     anchor=anchor
                 )
 
-                unit = "h" if "Hours" in self.y_label else "°C" if "°C" in self.y_label else ""
-                val_text = f"{value_y:.2f}{unit}" if unit else f"{value_y:.1f}"
+                if "Hours" in self.y_label:
+                    unit = "h"
+                elif "°F" in self.y_label:
+                    unit = "°F"
+                elif "°C" in self.y_label:
+                    unit = "°C"
+                else:
+                    unit = ""
+
+                val_text = f"{value_y:.2f}{unit}" if unit == "h" else f"{value_y:.1f}{unit}" if unit else f"{value_y:.1f}"
 
                 self.canvas.create_text(
                     text_x,

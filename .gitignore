@@ -208,5 +208,6 @@ __marimo__/
 
 # Other
 cache
+config
 build_all.cmd
 *.msi

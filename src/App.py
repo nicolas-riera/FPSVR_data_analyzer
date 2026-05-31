@@ -17,9 +17,11 @@ else:
 from src.scan_data import ProcessFiles
 from src.get_folder_path import HISTORY_DIR
 from src.MenuUI import MenuUI
+from src.OptionsUI import OptionsUI
 from src.GraphUI import GraphUI
 from src.LineGraphUI import LineGraphUI
 from src.ressource_path import resource_path
+from src.ConfigManager import ConfigManager
 
 class App(ctk.CTk):
     def __init__(self, version):
@@ -33,12 +35,15 @@ class App(ctk.CTk):
 
         self.version = version
 
+        self.user_config = ConfigManager.load_config()
+
         self.container = ctk.CTkFrame(master=self)
         self.container.pack(fill="both", expand=True)
         
         self.file_loading_progress_bar()
 
-        self.check_updates_async()
+        if self.user_config.get("check_updates", True):
+            self.check_updates_async()
 
         self.after(300, self.start_thread)
 
@@ -165,14 +170,27 @@ class App(ctk.CTk):
                         data.append([app, App.format_duration(duration), f"{avg_fps:.2f}"])
 
             case 3:
-                self.graphlabel = "CPU / GPU Usage & Temps"
-                headers = ["Hardware", "Type", "Usage Time", "Avg Temp", "Max Temp"]
+                unit = self.user_config.get("temp_unit", "°C")
+                self.graphlabel = f"CPU / GPU Usage & Temps ({unit})"
+                headers = ["Hardware", "Type", "Usage Time", f"Avg Temp ({unit})", f"Max Temp ({unit})"]
                 data = []
                 for name, info in self.data.hardware_usage.items():
                     valid_temps = [t for t in info.get('temps', []) if t != 0]
                     
-                    avg_temp = f"{sum(valid_temps)/len(valid_temps):.2f}" if valid_temps else "N/A"
-                    max_temp = f"{max(valid_temps):.2f}" if valid_temps else "N/A"
+                    if valid_temps:
+                        raw_avg = sum(valid_temps) / len(valid_temps)
+                        raw_max = max(valid_temps)
+                        
+                        if unit == "°F":
+                            avg_temp = f"{(raw_avg * 1.8) + 32:.2f}"
+                            max_temp = f"{(raw_max * 1.8) + 32:.2f}"
+                        else:
+                            avg_temp = f"{raw_avg:.2f}"
+                            max_temp = f"{raw_max:.2f}"
+                    else:
+                        avg_temp = "N/A"
+                        max_temp = "N/A"
+                        
                     usage_time = App.format_duration(info["time"])
                     data.append([name, info["type"], usage_time, avg_temp, max_temp])
 
@@ -307,9 +325,10 @@ class App(ctk.CTk):
                         graph_data.append((m_str, 0, "No data"))
 
             case -4:
-                self.graphlabel = "Recent CPU Temperatures - Last 7 Days"
+                unit = self.user_config.get("temp_unit", "°C")
+                self.graphlabel = f"Recent CPU Temperatures - Last 7 Days ({unit})"
                 self.x_label = "Date"
-                self.y_label = "°C"
+                self.y_label = unit
 
                 now_dt = datetime.now().date()
                 stats_map = {now_dt - timedelta(days=i): [] for i in range(6, -1, -1)}
@@ -321,19 +340,20 @@ class App(ctk.CTk):
                             if log_date in stats_map:
                                 stats_map[log_date].extend([t for t in temps if t != 0])
 
-                graph_data = [
-                    (
-                        day.strftime("%m/%d"),
-                        round(sum(v)/len(v), 1) if v else 0,
-                        ""
-                    )
-                    for day, v in stats_map.items()
-                ]
+                graph_data = []
+                for day, v in stats_map.items():
+                    if v:
+                        raw_avg = sum(v) / len(v)
+                        avg_val = (raw_avg * 1.8) + 32 if unit == "°F" else raw_avg
+                        graph_data.append((day.strftime("%m/%d"), round(avg_val, 2), ""))
+                    else:
+                        graph_data.append((day.strftime("%m/%d"), 0, ""))
 
             case -5: 
-                self.graphlabel = "Recent GPU Temperatures - Last 7 Days"
+                unit = self.user_config.get("temp_unit", "°C")
+                self.graphlabel = f"Recent GPU Temperatures - Last 7 Days ({unit})"
                 self.x_label = "Date"
-                self.y_label = "°C"
+                self.y_label = unit
 
                 now_dt = datetime.now().date()
                 stats_map = {now_dt - timedelta(days=i): [] for i in range(6, -1, -1)}
@@ -345,14 +365,14 @@ class App(ctk.CTk):
                             if log_date in stats_map:
                                 stats_map[log_date].extend([t for t in temps if t != 0])
 
-                graph_data = [
-                    (
-                        day.strftime("%m/%d"),
-                        round(sum(v)/len(v), 1) if v else 0,
-                        ""
-                    )
-                    for day, v in stats_map.items()
-                ]
+                graph_data = []
+                for day, v in stats_map.items():
+                    if v:
+                        raw_avg = sum(v) / len(v)
+                        avg_val = (raw_avg * 1.8) + 32 if unit == "°F" else raw_avg
+                        graph_data.append((day.strftime("%m/%d"), round(avg_val, 2), ""))
+                    else:
+                        graph_data.append((day.strftime("%m/%d"), 0, ""))
 
             # FPS History Viewer shortcut
             case 0:
@@ -405,17 +425,50 @@ class App(ctk.CTk):
 
     def show_menu(self):
         self.title("FPSVR Data Analyzer")
+
         if hasattr(self, 'graph_view'):
             self.graph_view.destroy()
+        if hasattr(self, 'options_screen') and self.options_screen:
+            self.options_screen.pack_forget()
+        if hasattr(self, 'status_container') and self.status_container.winfo_exists():
+            self.status_container.pack(side="bottom", fill="x")
+
         self.menu.pack(fill="both", expand=True, anchor="n")
         self.version_label.place(relx=1.0, rely=1.0, anchor="se", x=-10, y=-5)
 
     def show_options(self):
         self.menu.pack_forget()
         self.version_label.place_forget()
+        if hasattr(self, 'status_container') and self.status_container.winfo_exists():
+            self.status_container.pack_forget()
+
+        if hasattr(self, 'options_screen') and self.options_screen:
+            self.options_screen.pack(fill="both", expand=True)
+        else:
+            options_callbacks = {
+                "on_back": self.show_menu,
+                "on_unit_change": self.handle_temp_unit_change,
+                "on_update_setting_change": self.handle_update_setting_change 
+            }
+
+            self.options_screen = OptionsUI(
+                master=self.container,
+                callbacks=options_callbacks,
+                config=self.user_config
+            )
+
+    def handle_temp_unit_change(self, new_unit):
+        self.user_config["temp_unit"] = new_unit
+        
+        ConfigManager.save_config(self.user_config)
+
+    def handle_update_setting_change(self, check_updates_enabled):
+        self.user_config["check_updates"] = check_updates_enabled
+        ConfigManager.save_config(self.user_config)
 
     def refresh_data(self):
-        self.status_container.destroy()
+        if hasattr(self, 'status_container') and self.status_container.winfo_exists():
+            self.status_container.destroy()
         self.file_loading_progress_bar()
         self.menu.refresh_btn.configure(state="disabled", text="...")
         self.menu.update_last_played("Refreshing signal")
