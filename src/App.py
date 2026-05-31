@@ -45,7 +45,8 @@ class App(ctk.CTk):
         self.menu = MenuUI(
             self.container,
             on_select=self.handle_selection,
-            on_refresh=self.refresh_data
+            on_refresh=self.refresh_data,
+            on_option=self.show_options
         )
         self.menu.pack(fill="both", expand=True, anchor="n")
 
@@ -408,6 +409,10 @@ class App(ctk.CTk):
             self.graph_view.destroy()
         self.menu.pack(fill="both", expand=True, anchor="n")
         self.version_label.place(relx=1.0, rely=1.0, anchor="se", x=-10, y=-5)
+
+    def show_options(self):
+        self.menu.pack_forget()
+        self.version_label.place_forget()
 
     def refresh_data(self):
         self.status_container.destroy()

@@ -2,11 +2,12 @@ import customtkinter as ctk
 from datetime import datetime, timezone
 
 class MenuUI(ctk.CTkFrame):
-    def __init__(self, master, on_select, on_refresh, **kwargs):
+    def __init__(self, master, on_select, on_refresh, on_option, **kwargs):
         super().__init__(master, **kwargs)
 
         self.on_select = on_select
         self.on_refresh = on_refresh
+        self.on_option = on_option
 
         self.buttons = []
 
@@ -160,7 +161,19 @@ class MenuUI(ctk.CTkFrame):
             command=self.on_refresh,
             state="disabled"
         )
-        self.refresh_btn.pack(pady=5)
+        self.refresh_btn.pack(side="left", padx=10)
+
+        self.options_btn = ctk.CTkButton(
+            self.action_frame,
+            text="Options",
+            width=180,
+            height=40,
+            fg_color="#4f5d75",
+            hover_color="#2d3748",
+            corner_radius=10,
+            command=self.on_option
+        )
+        self.options_btn.pack(side="left", padx=10)
 
         self.exit_btn = ctk.CTkButton(
             self.action_frame,
@@ -172,7 +185,7 @@ class MenuUI(ctk.CTkFrame):
             corner_radius=10,
             command=master.quit
         )
-        self.exit_btn.pack(pady=5)
+        self.exit_btn.pack(side="left", padx=10)
 
         self.pack(fill="both", expand=True)
 
