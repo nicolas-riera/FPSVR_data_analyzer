@@ -21,12 +21,12 @@ class MenuUI(ctk.CTkFrame):
         )
         self.title.pack(pady=(20, 5))
 
-        self.subtitle = ctk.CTkLabel(
-            self.container,
-            text="Which data do you want to see?",
-            font=ctk.CTkFont(size=16)
-        )
-        self.subtitle.pack(pady=(0, 0))
+        # self.subtitle = ctk.CTkLabel(
+        #     self.container,
+        #     text="Which data do you want to see?",
+        #     font=ctk.CTkFont(size=16)
+        # )
+        # self.subtitle.pack(pady=(0, 0))
 
         self.last_played_label = ctk.CTkLabel(
             self.container,
