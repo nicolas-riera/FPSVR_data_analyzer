@@ -87,16 +87,19 @@ class ProcessFiles:
                             if app not in self.game_time:
                                 self.game_time[app] = {
                                     "duration": duration,
+                                    "sessions": 1,
                                     "history": {current_date: duration}
                                 }
                             else:
                                 if isinstance(self.game_time[app], (int, float)):
                                     self.game_time[app] = {
                                         "duration": self.game_time[app] + duration,
+                                        "sessions": 1,
                                         "history": {current_date: duration}
                                     }
                                 else:
                                     self.game_time[app]["duration"] += duration
+                                    self.game_time[app]["sessions"] = self.game_time[app].get("sessions", 0) + 1
                                     self.game_time[app]["history"][current_date] = self.game_time[app]["history"].get(current_date, 0) + duration
 
                             current_session_date_str = data["DateStart"] 

@@ -154,7 +154,7 @@ class App(ctk.CTk):
 
             case 2:
                 self.graphlabel = "Game Playtime & Avg FPS"
-                headers = ["Game", "Playtime", "Average FPS"]
+                headers = ["Game", "Playtime", "Sessions", "Average FPS"]
                 data = []
 
                 sorted_games = sorted(
@@ -166,8 +166,9 @@ class App(ctk.CTk):
                 for app, stats in sorted_games:
                     if isinstance(stats, dict):
                         duration = stats["duration"]
+                        sessions = stats.get("sessions", 0)
                         avg_fps = self.data.game_fps[app]["total_fps"] / self.data.game_fps[app]["total_time"] if app in self.data.game_fps else 0
-                        data.append([app, App.format_duration(duration), f"{avg_fps:.2f}"])
+                        data.append([app, App.format_duration(duration), str(sessions), f"{avg_fps:.2f}"])
 
             case 3:
                 unit = self.user_config.get("temp_unit", "°C")
