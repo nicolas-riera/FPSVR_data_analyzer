@@ -176,7 +176,7 @@ class App(ctk.CTk):
                 headers = ["Hardware", "Type", "Usage Time", f"Avg Temp ({unit})", f"Max Temp ({unit})"]
                 data = []
                 for name, info in self.data.hardware_usage.items():
-                    valid_temps = [t for t in info.get('temps', []) if t != 0]
+                    valid_temps = [t for t in info.get('temps', []) if t > 1]
                     
                     if valid_temps:
                         raw_avg = sum(valid_temps) / len(valid_temps)
